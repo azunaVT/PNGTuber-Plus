@@ -2,13 +2,12 @@
 
 ![Build Status](https://github.com/litruv/PNGTuber-Plus/workflows/Build%20Windows/badge.svg)
 
-### Recent Updates by Litruv 
+### Changes in This Fork (by Litruv) 
 - **Opacity Controls**: Sprite opacity slider, with hierarchical "affect children" option that also preserves clip mask behavior
-- **GitHub Actions**: Automated Windows builds on every commit
 - **StreamDeck Integration**: Add buttons to enable the streamdeck plugin that was built in
 - **Rotation Wobble**: New sprite rotation effects with frequency and amplitude controls
 - **Enhanced Modifier Keys**: Support for complex key combinations (Ctrl+Shift+Alt+Cmd)
-- **Godot 4.4.1 Support**: Updated for latest Godot stable release
+- **Godot 4.4.1 Support**: Updated to latest Godot stable release
 - **Microphone Improvements**: Audio delay fix & more *from [k0ffinz/PNGTuber-Plus](https://github.com/k0ffinz/PNGTuber-Plus)*
 
 ## 🙏 Credits
