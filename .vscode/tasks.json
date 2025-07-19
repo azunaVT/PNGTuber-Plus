@@ -4,7 +4,7 @@
 		{
 			"label": "Build PNGTuber-Plus",
 			"type": "shell",
-			"command": "cd c:\\DEV\\Sync\\PNGTuber-Plus && .\\build-windows.bat",
+			"command": "cd c:\\DEV\\Sync\\PNGTuber-Plus; .\\build-windows.bat",
 			"group": "build"
 		}
 	]

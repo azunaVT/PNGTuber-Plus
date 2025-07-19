@@ -269,7 +269,7 @@ func setZIndex():
 	sprite.z_index = z
 
 func talkBlink():
-	var faded = 0.2 * int(Global.main.editMode)
+	var faded = 0.2 * int(Global.main and Global.main.editMode)
 	var value = (showOnTalk + (showOnBlink*3)) + (int(Global.speaking)*10) + (int(Global.blink)*20)
 	var yes = [0,10,20,30,1,21,12,32,3,13,4,15,26,36,27,38].has(int(value))
 	var baseAlpha = max(int(yes), faded)

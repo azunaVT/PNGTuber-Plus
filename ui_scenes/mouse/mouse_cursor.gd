@@ -9,7 +9,7 @@ func _ready():
 	Global.mouse = self
 
 func _process(delta):
-	if Global.main.editMode:
+	if Global.main and Global.main.editMode:
 		if text != "":
 			label.text = text
 			visible = true

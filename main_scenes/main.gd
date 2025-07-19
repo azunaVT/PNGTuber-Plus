@@ -43,6 +43,12 @@ var bounceOnCostumeChange = false
 #Zooming
 var scaleOverall = 100
 
+#Camera Panning
+var isPanning = false
+var initialPanPosition = Vector2.ZERO
+var initialCameraOffset = Vector2.ZERO
+var cameraOffset = Vector2.ZERO
+
 var bounceChange = 0.0
 
 #IMPORTANT
@@ -130,7 +136,7 @@ func _ready():
 	
 	var s = get_viewport().get_visible_rect().size
 	origin.position = s*0.5
-	camera.position = origin.position
+	updateCameraPosition()
 	
 func _process(delta):
 	var hold = origin.get_parent().position.y
@@ -151,6 +157,43 @@ func _process(delta):
 	fileSystemOpen = isFileSystemOpen()
 	
 	followShadow()
+
+## Handle input events, especially for camera panning
+func _input(event):
+	# Handle middle mouse button for camera panning/reset
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_MIDDLE:
+		if editMode:
+			if event.pressed:
+				# Start panning in edit mode
+				isPanning = true
+				initialPanPosition = event.global_position
+				initialCameraOffset = cameraOffset
+			else:
+				# Stop panning
+				isPanning = false
+		else:
+			if event.pressed:
+				# Reset camera in view mode
+				resetCameraPosition()
+	
+	# Handle mouse movement during panning
+	elif editMode and event is InputEventMouseMotion and isPanning:
+		var totalDelta = event.global_position - initialPanPosition
+		
+		# Calculate new camera offset from initial position plus total movement
+		cameraOffset = initialCameraOffset - totalDelta
+		
+		# Update camera position immediately
+		var s = get_viewport().get_visible_rect().size
+		camera.position = origin.position + cameraOffset
+		
+		# Update UI positions
+		controlPanel.position = camera.position + (s/(camera.zoom*2.0))
+		tutorial.position = controlPanel.position
+		editControls.position = camera.position - (s/(camera.zoom*2.0))
+		viewerArrows.position = editControls.position
+		pushUpdates.position.y = controlPanel.position.y
+		pushUpdates.position.x = editControls.position.x
 
 func followShadow():
 	# Shadow disabled for selected sprites
@@ -189,14 +232,8 @@ func onWindowSizeChange():
 	lines.position = s*0.5
 	lines.drawLine()
 	
-	camera.position = origin.position
-	controlPanel.position = camera.position + (s/(camera.zoom*2.0))
-	tutorial.position = controlPanel.position
-	editControls.position = camera.position - (s/(camera.zoom*2.0))
-	viewerArrows.position = editControls.position
+	updateCameraPosition()
 	spriteList.position.x = s.x - 233
-	pushUpdates.position.y = controlPanel.position.y
-	pushUpdates.position.x = editControls.position.x
 
 func zoomScene():
 	#Handles Zooming
@@ -228,7 +265,29 @@ func changeZoom():
 	$ControlPanel/ZoomLabel.text = "Zoom : " + str(scaleOverall) + "%"
 	
 	Global.pushUpdate("Set zoom to " + str(scaleOverall) + "%")
-	onWindowSizeChange()
+
+## Update camera position with current offset
+func updateCameraPosition():
+	var s = get_viewport().get_visible_rect().size
+	
+	# Only update if not currently panning to avoid conflicts
+	if !isPanning:
+		camera.position = origin.position + cameraOffset
+		
+		# Update UI element positions relative to new camera position
+		controlPanel.position = camera.position + (s/(camera.zoom*2.0))
+		tutorial.position = controlPanel.position
+		editControls.position = camera.position - (s/(camera.zoom*2.0))
+		viewerArrows.position = editControls.position
+		pushUpdates.position.y = controlPanel.position.y
+		pushUpdates.position.x = editControls.position.x
+
+## Reset camera position to center
+func resetCameraPosition():
+	cameraOffset = Vector2.ZERO
+	isPanning = false
+	updateCameraPosition()
+	Global.pushUpdate("Camera reset to center.")
 	
 #When the user speaks!
 func onSpeak():
@@ -242,6 +301,10 @@ func swapMode():
 	
 	editMode = !editMode
 	Global.pushUpdate("Toggled editing mode.")
+	
+	# Reset camera when entering view mode
+	if !editMode:
+		resetCameraPosition()
 	
 	get_viewport().transparent_bg = !editMode
 	if Global.backgroundColor.a != 0.0:

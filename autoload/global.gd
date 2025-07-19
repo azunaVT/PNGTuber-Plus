@@ -106,7 +106,7 @@ func _process(delta):
 			heldSprite.z += 1
 			heldSprite.setZIndex()
 			pushUpdate("Moved sprite layer.")
-		if main.editMode:
+		if main and main.editMode:
 			if Input.is_action_just_pressed("reparent"):
 				reparentMode = !reparentMode
 				Global.chain.enable(reparentMode)
@@ -115,7 +115,7 @@ func _process(delta):
 		reparentMode = false
 		Global.chain.enable(reparentMode)
 	
-	if main.editMode:
+	if main and main.editMode:
 		if reparentMode:
 			RenderingServer.set_default_clear_color(Color.POWDER_BLUE)
 		else:
@@ -126,7 +126,7 @@ func _process(delta):
 	scrollSprites()
 	
 	
-	if !main.fileSystemOpen:
+	if !main or main.fileSystemOpen:
 	
 		if Input.is_action_just_pressed("refresh"):
 			refresh()
@@ -222,7 +222,7 @@ func scrollSprites():
 	if Input.is_action_pressed("control"):
 		return
 	
-	if !main.editMode:
+	if !main or !main.editMode:
 		return
 	
 	if main.fileSystemOpen:
