@@ -42,6 +42,12 @@ Hold MMB in view mode to shake your character, Show off them physics!
 ![viewmodeshake](https://github.com/user-attachments/assets/536dc4ae-0562-494f-8cd0-2d2ef115f085)
 
 
+🎞️ Delta Time Physics
+
+Physics are now framerate-independent. Low FPS won’t make your character move in slow motion anymore. 
+Just smooth, consistent jank if that’s your thing. Great for stop-motion vibes.
+
+
 ### 🎤 Microphone Fixes
 
 Merged in [k0ffinz’s](https://github.com/k0ffinz/PNGTuber-Plus) audio tweaks:
