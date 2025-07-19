@@ -261,6 +261,16 @@ func changeZoom():
 	pushUpdates.scale = newZoom
 	Global.mouse.scale = newZoom
 
+	# Update UI positions to account for new zoom level
+	# Force update even during panning since zoom affects UI positioning calculations
+	var s = get_viewport().get_visible_rect().size
+	controlPanel.position = camera.position + (s/(camera.zoom*2.0))
+	tutorial.position = controlPanel.position
+	editControls.position = camera.position - (s/(camera.zoom*2.0))
+	viewerArrows.position = editControls.position
+	pushUpdates.position.y = controlPanel.position.y
+	pushUpdates.position.x = editControls.position.x
+
 	$ControlPanel/ZoomLabel.modulate.a = 6.0
 	$ControlPanel/ZoomLabel.text = "Zoom : " + str(scaleOverall) + "%"
 	
