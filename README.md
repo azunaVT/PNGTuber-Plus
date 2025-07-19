@@ -2,16 +2,54 @@
 
 ![Build Status](https://github.com/litruv/PNGTuber-Plus/workflows/Build%20Windows/badge.svg)
 
-### Changes in This Fork (by Litruv) 
-- **Opacity Controls**: Sprite opacity slider, with hierarchical "affect children" option that also preserves clip mask behavior
-- **StreamDeck Integration**: Add buttons to enable the streamdeck plugin that was built in
-- **Rotation Wobble**: New sprite rotation effects with frequency and amplitude controls
-- **Enhanced Modifier Keys**: Support for complex key combinations (Ctrl+Shift+Alt+Cmd)
-- **Godot 4.4.1 Support**: Updated to latest Godot stable release
-- **Microphone Improvements**: Audio delay fix & more *from [k0ffinz/PNGTuber-Plus](https://github.com/k0ffinz/PNGTuber-Plus)*
+A fork of [kaiakairos/PNGTuber-Plus](https://github.com/kaiakairos/PNGTuber-Plus) with some quality-of-life upgrades, editor polish, and a few power-user toys.
 
-## 🙏 Credits
+---
 
-- **Original Project**: [PNGTuber Plus by kaiakairos](https://github.com/kaiakairos/PNGTuber-Plus)
-- **StreamDeck Plugin**: Based on [BoyneGames StreamDeck Godot Plugin](https://github.com/BoyneGames/streamdeck-godot-plugin)
-- **Microphone Improvements**: k0ffinz - Experimental mic loudness detection, improved audio initialization, and audio delay fixes from [k0ffinz/PNGTuber-Plus](https://github.com/k0ffinz/PNGTuber-Plus)
+## 🔧 Fork Changes (Litruv Edition)
+
+### 🎛️ Opacity Controls
+
+Added a proper opacity slider for sprites, with an "affect children" toggle. Clip masks still behave like they should.
+
+![Opacity Demo](https://github.com/user-attachments/assets/d5a05508-1cb1-46e0-8c90-d0aac73398db)
+
+
+### 🌀 Rotation Wobble
+
+Sprites can now do a subtle (or chaotic) rotational wobble. Frequency + amplitude sliders included.
+
+![Rotation Wobble](https://github.com/user-attachments/assets/f45c3cc8-98d8-48cf-8821-b015de0a2f78)
+
+
+### ⌨️ Enhanced Modifier Keys
+
+Supports combos like Ctrl+Shift+Alt+Cmd. For people with more keybinds than fingers.
+
+![Modifier Keys](https://github.com/user-attachments/assets/6d492134-f929-4e3e-a6c6-a89cf16cd62f)
+
+
+### 🎤 Microphone Fixes
+
+Merged in [k0ffinz’s](https://github.com/k0ffinz/PNGTuber-Plus) audio tweaks:
+
+* Reduced mic startup delay
+* Better loudness detection
+* General stability improvements
+
+
+### 🧱 Engine Update
+
+Updated to **Godot 4.4.1** — no more editor nags or compatibility weirdness.
+
+
+### 🎚️ StreamDeck Integration
+
+StreamDeck plugin was already in, this just wires up the buttons. 
+---
+
+## 🧾 Credits
+
+* Original project by [kaiakairos](https://github.com/kaiakairos/PNGTuber-Plus)
+* StreamDeck plugin from [BoyneGames](https://github.com/BoyneGames/streamdeck-godot-plugin)
+* Mic improvements by [k0ffinz](https://github.com/k0ffinz/PNGTuber-Plus)
