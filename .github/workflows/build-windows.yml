@@ -136,34 +136,38 @@ jobs:
           
           # Generate commit history since last tag (or all commits if no tag)
           $commitRange = if ($latestTag) { "$latestTag..HEAD" } else { "HEAD" }
-          $commitHistory = ""
           
           # Get commits with format: short hash, subject, author
           $commits = & git log $commitRange --pretty=format:"%h|%s|%an" --no-merges
           
+          # Build commit history as a single string
+          $commitHistory = ""
+          
           if ($commits) {
-            $commitHistory = "`n`n## Changes Since Last Release`n"
+            $commitHistory += "`n`n## Changes Since Last Release`n`n"
+            
             $commits | ForEach-Object {
               $parts = $_ -split '\|', 3
               $hash = $parts[0]
-              $subject = $parts[1]
+              $subject = $parts[1] -replace '"', '""'
               $author = $parts[2]
               $commitUrl = "https://github.com/${{ github.repository }}/commit/$hash"
-              $commitHistory += "- [$hash]($commitUrl) $subject (by $author)`n"
+              $commitHistory += "- [$hash]($commitUrl) $subject`n"
             }
           } else {
-            $commitHistory = "`n`n## Changes Since Last Release`nNo new commits since last release.`n"
+            $commitHistory += "`n`n## Changes Since Last Release`n`nNo new commits since last release.`n"
           }
-          
-          # Escape special characters for GitHub output
-          $commitHistoryEscaped = $commitHistory -replace '"', '\"' -replace '`', '\`'
           
           # Set outputs for use in next steps
           echo "tag=$tag" >> $env:GITHUB_OUTPUT
           echo "release_name=$releaseName" >> $env:GITHUB_OUTPUT
           echo "short_sha=$shortSha" >> $env:GITHUB_OUTPUT
           echo "build_number=$buildNumber" >> $env:GITHUB_OUTPUT
-          echo "commit_history=$commitHistoryEscaped" >> $env:GITHUB_OUTPUT
+          
+          # Use heredoc syntax for multiline commit history
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "commit_history<<EOF"
+          Add-Content -Path $env:GITHUB_OUTPUT -Value $commitHistory
+          Add-Content -Path $env:GITHUB_OUTPUT -Value "EOF"
       - name: Download Windows Build
         uses: actions/download-artifact@v4
         with:
@@ -181,10 +185,6 @@ jobs:
           body: |
             Automated build of PNGTuber Plus
             
-            **Build Information:**
-            - Build Number: ${{ steps.release_info.outputs.build_number }}
-            - Commit: [${{ steps.release_info.outputs.short_sha }}](https://github.com/${{ github.repository }}/commit/${{ github.sha }})
-            - Branch: ${{ github.ref_name }}
             ${{ steps.release_info.outputs.commit_history }}
             
             ## Installation
@@ -192,9 +192,6 @@ jobs:
             2. Run the executable - no installation required!
             3. For StreamDeck integration, download the plugin from [here](https://github.com/BoyneGames/streamdeck-godot-plugin/releases/tag/1.0.0)
             
-            ## Credits
-            - Original project by [kaiakairos](https://github.com/kaiakairos/PNGTuber-Plus)
-            - Microphone improvements by [k0ffinz](https://github.com/k0ffinz/PNGTuber-Plus)
           draft: false
           prerelease: false
       
