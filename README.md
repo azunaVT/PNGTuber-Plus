@@ -29,11 +29,17 @@ Supports combos like Ctrl+Shift+Alt+Cmd. For people with more keybinds than fing
 ![Modifier Keys](https://github.com/user-attachments/assets/6d492134-f929-4e3e-a6c6-a89cf16cd62f)
 
 
-### ↗️ Middle Mouse Button Panning
+### ↗️ Editor Middle Mouse Button Panning
 
 Hold MMB in the editor to pan around the scene, it'll reset when you go back to live.
 
 ![Panning](https://github.com/user-attachments/assets/b8687b69-fc84-43c9-950b-70395ae54820)
+
+### ↗️ View Mode MMB Shake
+
+Hold MMB in view mode to shake your character, Show off them physics!
+
+![viewmodeshake](https://github.com/user-attachments/assets/536dc4ae-0562-494f-8cd0-2d2ef115f085)
 
 
 ### 🎤 Microphone Fixes
