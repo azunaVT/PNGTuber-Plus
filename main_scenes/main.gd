@@ -36,6 +36,10 @@ var yVel = 0
 var bounceSlider = 250
 var bounceGravity = 1000
 
+# Physics timing multiplier - adjust this to fine-tune physics speed
+# 1.0 = very slow, 10.0 = reasonable, 60.0 = old frame-based speed
+var physicsTimeMultiplier = 6.0
+
 #Costumes
 var costume = 1
 var bounceOnCostumeChange = false
@@ -147,12 +151,12 @@ func _ready():
 func _process(delta):
 	var hold = origin.get_parent().position.y
 	
-	origin.get_parent().position.y += yVel * 0.0166
+	origin.get_parent().position.y += yVel * delta * physicsTimeMultiplier
 	if origin.get_parent().position.y > 0:
 		origin.get_parent().position.y = 0
 	bounceChange = hold - origin.get_parent().position.y
 	
-	yVel += bounceGravity*0.0166
+	yVel += bounceGravity * delta * physicsTimeMultiplier
 	
 	# Handle view mode panning lerp back to center
 	if !editMode:
@@ -168,7 +172,7 @@ func _process(delta):
 		OS.shell_open(ProjectSettings.globalize_path("user://"))
 	
 	moveSpriteMenu(delta)
-	zoomScene()
+	zoomScene(delta)
 	
 	fileSystemOpen = isFileSystemOpen()
 	
@@ -269,7 +273,7 @@ func onWindowSizeChange():
 	updateCameraPosition()
 	spriteList.position.x = s.x - 233
 
-func zoomScene():
+func zoomScene(delta):
 	#Handles Zooming
 	if Input.is_action_pressed("control"):
 		if Input.is_action_just_pressed("scrollUp"):
@@ -283,7 +287,7 @@ func zoomScene():
 				scaleOverall -= 10
 				changeZoom()
 	
-	$ControlPanel/ZoomLabel.modulate.a = lerp($ControlPanel/ZoomLabel.modulate.a,0.0,0.02)
+	$ControlPanel/ZoomLabel.modulate.a = lerp($ControlPanel/ZoomLabel.modulate.a, 0.0, delta * (physicsTimeMultiplier * 1.2))
 	
 func changeZoom():
 	var newZoom = Vector2(1.0,1.0) / camera.zoom
@@ -700,9 +704,9 @@ func moveSpriteMenu(delta):
 
 	
 	if $EditControls/MoveMenuUp.overlaps_area(Global.mouse.area):
-		Global.spriteEdit.position.y += (delta*432.0)
+		Global.spriteEdit.position.y += (delta * 432.0 * physicsTimeMultiplier)
 	elif $EditControls/MoveMenuDown.overlaps_area(Global.mouse.area):
-		Global.spriteEdit.position.y -= (delta*432.0)
+		Global.spriteEdit.position.y -= (delta * 432.0 * physicsTimeMultiplier)
 	
 	if Global.spriteEdit.position.y > 66:
 		Global.spriteEdit.position.y = 66

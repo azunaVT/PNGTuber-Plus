@@ -4,7 +4,8 @@ extends Node2D
 @onready var editButton = $Edit/Button
 
 func _process(delta):
+	var uiAnimSpeed = Global.main.physicsTimeMultiplier * 20.0 if Global.main else 120.0
 	if Rect2(editButton.get_parent().position-Vector2(24,24),editButton.size).has_point(get_local_mouse_position()):
-		editSprite.scale = lerp(editSprite.scale,Vector2(1.2,1.2),0.2)
+		editSprite.scale = lerp(editSprite.scale, Vector2(1.2,1.2), delta * uiAnimSpeed)
 	else:
-		editSprite.scale = lerp(editSprite.scale,Vector2(1.0,1.0),0.2)
+		editSprite.scale = lerp(editSprite.scale, Vector2(1.0,1.0), delta * uiAnimSpeed)

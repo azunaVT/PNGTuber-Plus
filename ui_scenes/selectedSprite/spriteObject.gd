@@ -79,12 +79,13 @@ var ignoreBounce = false
 #Animation
 var frames = 1
 var animSpeed = 0
+var animTime = 0.0  # Time accumulator for animations
 
 var remadePolygon = false
 
 var clipped = false
 
-var tick = 0
+var time = 0.0  # Time accumulator for physics calculations
 
 #Opacity
 var spriteOpacity = 1.0
@@ -224,7 +225,7 @@ func replaceSprite(pathNew):
 		remakePolygon()
 
 func _process(delta):
-	tick += 1
+	time += delta
 	if Global.heldSprite == self:
 		
 		grabArea.visible = true
@@ -251,13 +252,17 @@ func _process(delta):
 	
 	talkBlink()
 	
-	animation()
+	animation(delta)
 
-func animation():
-	
-	var speed = max(float(animSpeed),Engine.max_fps*6.0)
+func animation(delta):
 	if animSpeed > 0 and frames > 1:
-		if Global.animationTick % int((speed)/float(animSpeed)) == 0:
+		animTime += delta
+		# Convert animSpeed to frames per second - no additional scaling needed since this controls frame rate
+		var frameRate = animSpeed / 60.0  # Normalize from old frame-based system
+		var frameInterval = 1.0 / frameRate
+		
+		if animTime >= frameInterval:
+			animTime -= frameInterval
 			if sprite.frame == frames - 1:
 				sprite.frame = 0
 			else:
@@ -348,31 +353,46 @@ func drag(delta):
 	if dragSpeed == 0:
 		dragger.global_position = wob.global_position
 	else:
-		dragger.global_position = lerp(dragger.global_position,wob.global_position,1/dragSpeed)
+		# Convert dragSpeed to a proper delta-time lerp factor
+		# Higher dragSpeed = slower movement, so we invert it
+		# Use Global.main.physicsTimeMultiplier for consistent physics timing
+		var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
+		var lerpFactor = clamp(delta * (physicsMultiplier * 10.0 / max(dragSpeed, 0.1)), 0.0, 1.0)
+		dragger.global_position = lerp(dragger.global_position, wob.global_position, lerpFactor)
 		dragOrigin.global_position = dragger.global_position
 
 func wobble():
-	wob.position.x = sin(tick*xFrq)*xAmp
-	wob.position.y = sin(tick*yFrq)*yAmp
+	# Use Global.main.physicsTimeMultiplier for consistent physics timing
+	var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
+	var scaledTime = time * physicsMultiplier
+	wob.position.x = sin(scaledTime * xFrq) * xAmp
+	wob.position.y = sin(scaledTime * yFrq) * yAmp
 
-func rotationalDrag(length,delta):
+func rotationalDrag(length, delta):
 	var yvel = (length * rdragStr)
 	
 	#Calculate Max angle
-	yvel = clamp(yvel,rLimitMin,rLimitMax)
+	yvel = clamp(yvel, rLimitMin, rLimitMax)
 	
 	# Add rotation wobble as percentage of rotational limits range
 	var rotationRange = rLimitMax - rLimitMin
-	var rotationWobble = sin(tick*rFrq) * (rotationRange * rAmp * 0.01)
+	var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
+	var scaledTime = time * physicsMultiplier
+	var rotationWobble = sin(scaledTime * rFrq) * (rotationRange * rAmp * 0.01)
 	var totalRotation = yvel + rotationWobble
 	
-	sprite.rotation = lerp_angle(sprite.rotation,deg_to_rad(totalRotation),0.25)
+	# Use delta-based lerp for smooth rotation with slower speed
+	var lerpFactor = clamp(delta * (physicsMultiplier * 1.0), 0.0, 1.0)  # Reduced from 15.0 to 4.0
+	sprite.rotation = lerp_angle(sprite.rotation, deg_to_rad(totalRotation), lerpFactor)
 
-func stretch(length,delta):
+func stretch(length, delta):
 	var yvel = (length * stretchAmount * 0.01)
-	var target = Vector2(1.0-yvel,1.0+yvel)
+	var target = Vector2(1.0 - yvel, 1.0 + yvel)
 	
-	sprite.scale = lerp(sprite.scale,target,0.5)
+	# Use delta-based lerp for smooth stretching
+	var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
+	var lerpFactor = clamp(delta * (physicsMultiplier * 30.0), 0.0, 1.0)
+	sprite.scale = lerp(sprite.scale, target, lerpFactor)
 
 func changeCollision(enable):
 	grabArea.monitorable = enable
