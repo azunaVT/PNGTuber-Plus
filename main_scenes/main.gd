@@ -428,6 +428,13 @@ func _on_load_dialog_file_selected(path):
 	Saving.settings["lastAvatar"] = path
 	Global.spriteList.updateData()
 	
+	# Update opacity shaders for all loaded sprites after they're all created
+	await get_tree().process_frame  # Wait for all sprites to be fully initialized
+	var allSprites = get_tree().get_nodes_in_group("saved")
+	for sprite in allSprites:
+		if sprite.has_method("updateOpacity"):
+			sprite.updateOpacity()
+	
 	Global.pushUpdate("Loaded avatar at: " + path)
 	
 	onWindowSizeChange()
@@ -566,6 +573,10 @@ func _on_duplicate_button_pressed():
 	
 	origin.add_child(sprite)
 	sprite.position = Global.heldSprite.position + Vector2(16,16)
+	
+	# Update opacity shader for the duplicated sprite
+	await get_tree().process_frame  # Wait for sprite to be fully initialized
+	sprite.updateOpacity()
 	
 	Global.heldSprite = sprite
 	
