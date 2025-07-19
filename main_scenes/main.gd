@@ -180,8 +180,13 @@ func _input(event):
 	elif editMode and event is InputEventMouseMotion and isPanning:
 		var totalDelta = event.global_position - initialPanPosition
 		
-		# Calculate new camera offset from initial position plus total movement
-		cameraOffset = initialCameraOffset - totalDelta
+		# Scale pan distance based on zoom level for more intuitive panning
+		# Higher zoom (closer) = less movement, lower zoom (farther) = more movement
+		var zoomScale = 1.0 / camera.zoom.x
+		var scaledDelta = totalDelta * zoomScale
+		
+		# Calculate new camera offset from initial position plus scaled movement
+		cameraOffset = initialCameraOffset - scaledDelta
 		
 		# Update camera position immediately
 		var s = get_viewport().get_visible_rect().size
