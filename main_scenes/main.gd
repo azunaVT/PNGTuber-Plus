@@ -49,6 +49,12 @@ var initialPanPosition = Vector2.ZERO
 var initialCameraOffset = Vector2.ZERO
 var cameraOffset = Vector2.ZERO
 
+#View Mode Panning
+var viewModePanning = false
+var initialViewPanPosition = Vector2.ZERO
+var viewPanOffset = Vector2.ZERO
+var viewPanLerpSpeed = 3.0
+
 var bounceChange = 0.0
 
 #IMPORTANT
@@ -148,6 +154,16 @@ func _process(delta):
 	
 	yVel += bounceGravity*0.0166
 	
+	# Handle view mode panning lerp back to center
+	if !editMode:
+		if !viewModePanning:
+			# Lerp back to center when not actively panning
+			viewPanOffset = viewPanOffset.lerp(Vector2.ZERO, viewPanLerpSpeed * delta)
+		
+		# Apply view pan offset to the root character (affects physics)
+		origin.position = (get_viewport().get_visible_rect().size * 0.5) + viewPanOffset
+		updateCameraPosition()
+	
 	if Input.is_action_just_pressed("openFolder"):
 		OS.shell_open(ProjectSettings.globalize_path("user://"))
 	
@@ -173,10 +189,14 @@ func _input(event):
 				isPanning = false
 		else:
 			if event.pressed:
-				# Reset camera in view mode
-				resetCameraPosition()
+				# Start view mode panning
+				viewModePanning = true
+				initialViewPanPosition = event.global_position
+			else:
+				# Stop view mode panning
+				viewModePanning = false
 	
-	# Handle mouse movement during panning
+	# Handle mouse movement during edit mode panning
 	elif editMode and event is InputEventMouseMotion and isPanning:
 		var totalDelta = event.global_position - initialPanPosition
 		
@@ -199,6 +219,15 @@ func _input(event):
 		viewerArrows.position = editControls.position
 		pushUpdates.position.y = controlPanel.position.y
 		pushUpdates.position.x = editControls.position.x
+	
+	# Handle mouse movement during view mode panning
+	elif !editMode and event is InputEventMouseMotion and viewModePanning:
+		var totalDelta = event.global_position - initialViewPanPosition
+		
+		# Scale pan distance for view mode (less sensitive than edit mode)
+		# Invert the movement so dragging right moves character right (not left)
+		var panSensitivity = 0.5
+		viewPanOffset = -totalDelta * panSensitivity
 
 func followShadow():
 	# Shadow disabled for selected sprites
@@ -301,6 +330,8 @@ func updateCameraPosition():
 func resetCameraPosition():
 	cameraOffset = Vector2.ZERO
 	isPanning = false
+	viewPanOffset = Vector2.ZERO
+	viewModePanning = false
 	updateCameraPosition()
 	Global.pushUpdate("Camera reset to center.")
 	
@@ -320,6 +351,10 @@ func swapMode():
 	# Reset camera when entering view mode
 	if !editMode:
 		resetCameraPosition()
+	else:
+		# Reset view mode panning when entering edit mode
+		viewPanOffset = Vector2.ZERO
+		viewModePanning = false
 	
 	get_viewport().transparent_bg = !editMode
 	if Global.backgroundColor.a != 0.0:
