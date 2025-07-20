@@ -9,10 +9,15 @@ extends Node2D
 
 
 @onready var coverCollider = $Area2D/CollisionShape2D
-
+@onready var wobbleSyncControl = null  # Will be assigned in _ready()
 
 func _ready():
 	Global.spriteEdit = self
+	
+	# Find the wobble sync control node
+	wobbleSyncControl = find_child("WobbleSyncControl")
+	if wobbleSyncControl == null:
+		print("Warning: WobbleSyncControl node not found in sprite viewer")
 	
 func setImage():
 	if Global.heldSprite == null:
@@ -83,6 +88,16 @@ func setImage():
 	
 	setLayerButtons()
 	
+	# Update wobble sync control
+	if wobbleSyncControl:
+		wobbleSyncControl.setSprite(Global.heldSprite)
+		# Force a refresh to ensure dropdown is populated
+		await get_tree().process_frame
+		wobbleSyncControl.updateUI()
+	
+	# Update wobble control states based on sync status
+	updateWobbleControlStates()
+	
 	if Global.heldSprite.parentId == null:
 		$Buttons/Unlink.visible = false
 		parentSpin.visible = false
@@ -98,6 +113,30 @@ func setImage():
 		parentSpin.pixel_size = 1.5 / nodes[0].imageData.get_size().y
 		parentSpin.hframes = nodes[0].frames
 		parentSpin.visible = true
+
+## Update wobble control states based on sync status
+func updateWobbleControlStates():
+	if Global.heldSprite == null:
+		return
+	
+	var isSynced = Global.heldSprite.isSynced()
+	
+	# Keep wobble controls enabled even when synced (they edit group settings)
+	$WobbleControl/xFrq.editable = true
+	$WobbleControl/xAmp.editable = true
+	$WobbleControl/yFrq.editable = true
+	$WobbleControl/yAmp.editable = true
+	$WobbleControl/rFrq.editable = true
+	$WobbleControl/rAmp.editable = true
+	
+	# Visual feedback for sync state - slight tint to indicate group editing
+	var tint = Color(1.0, 1.0, 0.9) if isSynced else Color.WHITE
+	$WobbleControl/xFrq.modulate = tint
+	$WobbleControl/xAmp.modulate = tint
+	$WobbleControl/yFrq.modulate = tint
+	$WobbleControl/yAmp.modulate = tint
+	$WobbleControl/rFrq.modulate = tint
+	$WobbleControl/rAmp.modulate = tint
 	
 func _process(delta):
 
@@ -131,31 +170,55 @@ func _on_drag_slider_value_changed(value):
 
 
 func _on_x_frq_value_changed(value):
+	print("DEBUG: _on_x_frq_value_changed called with value: ", value)
 	$WobbleControl/xFrqLabel.text = "x frequency: " + str(value)
-	Global.heldSprite.xFrq = value
+	Global.heldSprite.updateWobbleParameter("xFrq", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 	
 
 func _on_x_amp_value_changed(value):
+	print("DEBUG: _on_x_amp_value_changed called with value: ", value)
 	$WobbleControl/xAmpLabel.text = "x amplitude: " + str(value)
-	Global.heldSprite.xAmp = value
+	Global.heldSprite.updateWobbleParameter("xAmp", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 
 
 func _on_y_frq_value_changed(value):
+	print("DEBUG: _on_y_frq_value_changed called with value: ", value)
 	$WobbleControl/yFrqLabel.text = "y frequency: " + str(value)
-	Global.heldSprite.yFrq = value
+	Global.heldSprite.updateWobbleParameter("yFrq", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 
 func _on_y_amp_value_changed(value):
+	print("DEBUG: _on_y_amp_value_changed called with value: ", value)
 	$WobbleControl/yAmpLabel.text = "y amplitude: " + str(value)
-	Global.heldSprite.yAmp = value
+	Global.heldSprite.updateWobbleParameter("yAmp", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 
 
 func _on_r_frq_value_changed(value):
+	print("DEBUG: _on_r_frq_value_changed called with value: ", value)
 	$WobbleControl/rFrqLabel.text = "rotation frequency: " + str(value)
-	Global.heldSprite.rFrq = value
+	Global.heldSprite.updateWobbleParameter("rFrq", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 
 func _on_r_amp_value_changed(value):
+	print("DEBUG: _on_r_amp_value_changed called with value: ", value)
 	$WobbleControl/rAmpLabel.text = "rotation amplitude: " + str(value) + "%"
-	Global.heldSprite.rAmp = value
+	Global.heldSprite.updateWobbleParameter("rAmp", value)
+	# Refresh wobble sync control after parameter change
+	if wobbleSyncControl:
+		wobbleSyncControl.updateUI()
 
 
 func _on_r_drag_value_changed(value):
@@ -180,6 +243,10 @@ func _on_blinking_pressed():
 
 
 func _on_trash_pressed():
+	# Clean up wobble sync group membership before deleting
+	if Global.heldSprite.wobbleSyncGroup != "" and WobbleSyncManager:
+		WobbleSyncManager.onSpriteDeleted(Global.heldSprite.id)
+	
 	Global.heldSprite.queue_free()
 	Global.heldSprite = null
 	

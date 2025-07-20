@@ -94,6 +94,9 @@ var affectChildrenOpacity = false
 #Vis toggle
 var toggle = "null"
 
+#Wobble Sync Group
+var wobbleSyncGroup = ""
+
 func _ready():
 	
 	Global.main.spriteVisToggles.connect(visToggle)
@@ -171,6 +174,8 @@ func _ready():
 	
 	setClip(clipped)
 	
+	# Always initialize opacity shader
+	updateShaderOpacity()
 	
 	if Global.filtering:
 		sprite.texture_filter = 2
@@ -235,6 +240,16 @@ func _process(delta):
 		grabArea.visible = false
 		originSprite.visible = false
 	
+	# Disable grabArea input and detection when dialogs are open
+	if Global.main and Global.main.fileSystemOpen:
+		grabArea.input_pickable = false
+		grabArea.monitoring = false
+		grabArea.monitorable = false
+	else:
+		grabArea.input_pickable = true
+		grabArea.monitoring = true
+		grabArea.monitorable = true
+	
 	var glob = dragger.global_position
 	if ignoreBounce:
 		glob.y -= Global.main.bounceChange
@@ -282,7 +297,12 @@ func talkBlink():
 	# Only handle talk/blink/edit visibility with modulate
 	# Opacity slider effects are handled by shader
 	sprite.self_modulate.a = 1.0  # Always keep original texture alpha for clipping
+	var previousAlpha = sprite.modulate.a
 	sprite.modulate.a = baseAlpha  # Only apply talk/blink/edit visibility
+	
+	# Update shader if modulate alpha changed (for editor dimming)
+	if previousAlpha != baseAlpha:
+		updateShaderOpacity()
 
 func calculateParentOpacityMultiplier():
 	var multiplier = 1.0
@@ -296,7 +316,40 @@ func calculateParentOpacityMultiplier():
 	
 	return multiplier
 
+## Update wobble parameters and sync to group if needed
+func updateWobbleParameter(parameter: String, value: float):
+	print("DEBUG: updateWobbleParameter called - parameter: ", parameter, ", value: ", value, ", sprite ID: ", id)
+	print("DEBUG: Current wobbleSyncGroup: '", wobbleSyncGroup, "'")
+	
+	# Update this sprite's parameter first
+	match parameter:
+		"xFrq": xFrq = value
+		"xAmp": xAmp = value
+		"yFrq": yFrq = value
+		"yAmp": yAmp = value
+		"rFrq": rFrq = value
+		"rAmp": rAmp = value
+	
+	print("DEBUG: Parameter updated on sprite. New values - xFrq:", xFrq, " xAmp:", xAmp, " yFrq:", yFrq, " yAmp:", yAmp, " rFrq:", rFrq, " rAmp:", rAmp)
+	
+	# If this sprite is in a sync group, update the entire group
+	if wobbleSyncGroup != "" and WobbleSyncManager:
+		print("DEBUG: Sprite is in sync group '", wobbleSyncGroup, "' - updating group wobble parameters")
+		WobbleSyncManager.updateGroupWobble(wobbleSyncGroup, xFrq, xAmp, yFrq, yAmp, rFrq, rAmp)
+		
+		# Don't refresh UI immediately - let the sync process complete first
+		# The wobble sync control will handle UI updates when needed
+	else:
+		print("DEBUG: Sprite not in sync group or WobbleSyncManager not available")
+
+## Check if this sprite is synced to a group
+func isSynced() -> bool:
+	return wobbleSyncGroup != ""
+
 func delete():
+	# Clean up from wobble sync groups
+	if wobbleSyncGroup != "" and WobbleSyncManager:
+		WobbleSyncManager.onSpriteDeleted(id)
 	queue_free()
 
 func _physics_process(delta):
@@ -460,17 +513,17 @@ func updateShaderOpacity():
 	# Calculate total opacity from user settings and parent hierarchy
 	var totalOpacity = spriteOpacity * calculateParentOpacityMultiplier()
 	
-	if totalOpacity >= 1.0:
-		# No shader needed for 100% opacity
-		sprite.material = null
-	else:
-		# Create or update shader material for opacity less than 100%
-		if opacityMaterial == null:
-			opacityMaterial = ShaderMaterial.new()
-			opacityMaterial.shader = opacityShader
-		
-		opacityMaterial.set_shader_parameter("opacity", totalOpacity)
-		sprite.material = opacityMaterial
+	# Also factor in the modulate alpha for editor dimming/onion skinning
+	var editorAlpha = sprite.modulate.a
+	var finalOpacity = totalOpacity * editorAlpha
+	
+	# Always apply the opacity shader to ensure it's loaded
+	if opacityMaterial == null:
+		opacityMaterial = ShaderMaterial.new()
+		opacityMaterial.shader = opacityShader
+	
+	opacityMaterial.set_shader_parameter("opacity", finalOpacity)
+	sprite.material = opacityMaterial
 
 func updateChildrenOpacityRecursively():
 	var linkedSprites = getAllLinkedSprites()

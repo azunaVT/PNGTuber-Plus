@@ -78,14 +78,27 @@ func _ready():
 	
 	Global.connect("startSpeaking",onSpeak)
 	
-	ElgatoStreamDeck.on_key_down.connect(changeCostumeStreamDeck)
+	# Connect to StreamDeck if available
+	var streamdeck_node = get_node_or_null("/root/ElgatoStreamDeck")
+	if streamdeck_node != null:
+		streamdeck_node.on_key_down.connect(changeCostumeStreamDeck)
 	
 	if Saving.settings["newUser"]:
+		print("DEBUG: MAIN._ready() - New user detected, loading default avatar")
 		_on_load_dialog_file_selected("default")
 		Saving.settings["newUser"] = false
 		saveLoaded = true
 	else:
-		_on_load_dialog_file_selected(Saving.settings["lastAvatar"])
+		print("DEBUG: MAIN._ready() - Existing user, loading last avatar")
+		var lastAvatar = Saving.settings["lastAvatar"]
+		print("DEBUG: lastAvatar setting: ", lastAvatar, " (type: ", typeof(lastAvatar), ")")
+		# Ensure lastAvatar is a string, not a Dictionary
+		if typeof(lastAvatar) == TYPE_STRING and lastAvatar != "":
+			print("DEBUG: Loading avatar from: ", lastAvatar)
+			_on_load_dialog_file_selected(lastAvatar)
+		else:
+			print("WARNING: lastAvatar setting is invalid, loading default instead")
+			_on_load_dialog_file_selected("default")
 		
 		$ControlPanel/volumeSlider.value = Saving.settings["volume"]
 		$ControlPanel/sensitiveSlider.value = Saving.settings["sense"]
@@ -245,6 +258,11 @@ func isFileSystemOpen():
 				return true
 			Global.heldSprite = null
 			return true
+	
+	# Check wobble sync group dialog
+	if Global.spriteEdit and Global.spriteEdit.wobbleSyncControl and Global.spriteEdit.wobbleSyncControl.createGroupDialog and Global.spriteEdit.wobbleSyncControl.createGroupDialog.visible:
+		return true
+	
 	return false
 
 #Displays control panel whether or not application is focused
@@ -407,10 +425,36 @@ func _on_load_button_pressed():
 
 #LOAD AVATAR
 func _on_load_dialog_file_selected(path):
+	print("DEBUG: _on_load_dialog_file_selected called with path: ", path, " (type: ", typeof(path), ")")
+	
+	# Handle case where path might be a Dictionary instead of string
+	if typeof(path) == TYPE_DICTIONARY:
+		print("ERROR: Expected string path but got Dictionary: ", path)
+		return
+	
+	print("DEBUG: About to read save data from: ", path)
 	var data = Saving.read_save(path)
+	print("DEBUG: Save data read. Data type: ", typeof(data), ", null check: ", data == null)
 	
 	if data == null:
+		print("DEBUG: Save data is null, returning")
 		return
+	
+	print("DEBUG: Save data keys: ", data.keys() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
+	print("DEBUG: Save data size: ", data.size() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
+	
+	# Check the structure of the first few items
+	if typeof(data) == TYPE_DICTIONARY:
+		var count = 0
+		for key in data.keys():
+			if count < 3:  # Just show first 3 items for debugging
+				print("DEBUG: data[", key, "] = ", data[key])
+				print("DEBUG: data[", key, "] type = ", typeof(data[key]))
+				if typeof(data[key]) == TYPE_DICTIONARY and data[key].has("path"):
+					print("DEBUG: data[", key, "][\"path\"] = ", data[key]["path"])
+				else:
+					print("DEBUG: data[", key, "] doesn't have 'path' key or isn't a dictionary")
+				count += 1
 	
 	origin.queue_free()
 	var new = Node2D.new()
@@ -418,6 +462,15 @@ func _on_load_dialog_file_selected(path):
 	origin = new
 	
 	for item in data:
+		print("DEBUG: Processing item: ", item, ", data type: ", typeof(data[item]))
+		if typeof(data[item]) != TYPE_DICTIONARY:
+			print("DEBUG: Skipping item ", item, " - not a dictionary")
+			continue
+		
+		if not data[item].has("path"):
+			print("DEBUG: Skipping item ", item, " - no 'path' key. Keys: ", data[item].keys())
+			continue
+		
 		var sprite = spriteObject.instantiate()
 		sprite.path = data[item]["path"]
 		sprite.id = data[item]["identification"]
@@ -475,6 +528,10 @@ func _on_load_dialog_file_selected(path):
 		if data[item].has("affectChildrenOpacity"):
 			sprite.affectChildrenOpacity = data[item]["affectChildrenOpacity"]
 		
+		# Load wobble sync group (with backward compatibility)
+		if data[item].has("wobbleSyncGroup"):
+			sprite.wobbleSyncGroup = data[item]["wobbleSyncGroup"]
+		
 		origin.add_child(sprite)
 		sprite.position = str_to_var(data[item]["pos"])
 	
@@ -482,7 +539,43 @@ func _on_load_dialog_file_selected(path):
 	Saving.settings["lastAvatar"] = path
 	Global.spriteList.updateData()
 	
-	# Update opacity shaders for all loaded sprites after they're all created
+	# Load wobble sync groups
+	print("DEBUG: About to check for wobble sync groups...")
+	print("DEBUG: data type: ", typeof(data), ", data.keys(): ", data.keys() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
+	print("DEBUG: data.has('wobbleSyncGroups'): ", data.has("wobbleSyncGroups"))
+	print("DEBUG: WobbleSyncManager exists: ", WobbleSyncManager != null)
+	if WobbleSyncManager != null:
+		print("DEBUG: WobbleSyncManager type: ", typeof(WobbleSyncManager))
+	
+	# Show save data content related to wobble sync
+	if data.has("wobbleSyncGroups"):
+		print("DEBUG: wobbleSyncGroups data found: ", data["wobbleSyncGroups"])
+	else:
+		print("DEBUG: No wobbleSyncGroups found in save data")
+	
+	if data.has("wobbleSyncGroups") and WobbleSyncManager:
+		print("DEBUG: Loading wobble sync groups. Data: ", data["wobbleSyncGroups"])
+		await WobbleSyncManager.loadSaveData(data["wobbleSyncGroups"])
+		print("DEBUG: Finished loading wobble sync groups")
+		# Refresh wobble sync UI after groups are loaded
+		if Global.spriteEdit and Global.spriteEdit.wobbleSyncControl:
+			Global.spriteEdit.wobbleSyncControl.updateUI()
+			# Force refresh in case timing issues
+			await get_tree().process_frame
+			Global.spriteEdit.wobbleSyncControl.forceRefresh()
+			# Force refresh in case timing issues
+			await get_tree().process_frame
+			Global.spriteEdit.wobbleSyncControl.forceRefresh()
+	else:
+		print("DEBUG: Not loading wobble sync groups - missing data or manager")
+	
+	# Final debug check
+	if WobbleSyncManager:
+		print("DEBUG: Final check - WobbleSyncManager has ", WobbleSyncManager.getGroupNames().size(), " groups: ", WobbleSyncManager.getGroupNames())
+	else:
+		print("DEBUG: No wobble sync groups to load. has key: ", data.has("wobbleSyncGroups"), ", WobbleSyncManager: ", WobbleSyncManager != null)
+	
+	# Update opacity shaders for all loaded sprites after wobble sync data is applied
 	await get_tree().process_frame  # Wait for all sprites to be fully initialized
 	var allSprites = get_tree().get_nodes_in_group("saved")
 	for sprite in allSprites:
@@ -546,7 +639,14 @@ func _on_save_dialog_file_selected(path):
 			data[id]["spriteOpacity"] = child.spriteOpacity
 			data[id]["affectChildrenOpacity"] = child.affectChildrenOpacity
 			
+			# Save wobble sync group
+			data[id]["wobbleSyncGroup"] = child.wobbleSyncGroup
+			
 		id += 1
+	
+	# Save wobble sync groups
+	if WobbleSyncManager:
+		data["wobbleSyncGroups"] = WobbleSyncManager.getSaveData()
 	
 	Saving.settings["lastAvatar"] = path
 	
@@ -625,6 +725,9 @@ func _on_duplicate_button_pressed():
 	sprite.spriteOpacity = Global.heldSprite.spriteOpacity
 	sprite.affectChildrenOpacity = Global.heldSprite.affectChildrenOpacity
 	
+	# Copy wobble sync group
+	sprite.wobbleSyncGroup = Global.heldSprite.wobbleSyncGroup
+	
 	origin.add_child(sprite)
 	sprite.position = Global.heldSprite.position + Vector2(16,16)
 	
@@ -676,7 +779,7 @@ func moveSpriteMenu(delta):
 	
 	var size = get_viewport().get_visible_rect().size
 	
-	var windowLength = 1500
+	var windowLength = 1800
 	
 	$ViewerArrows/Arrows.position.y =  size.y - 25
 	
@@ -704,9 +807,9 @@ func moveSpriteMenu(delta):
 
 	
 	if $EditControls/MoveMenuUp.overlaps_area(Global.mouse.area):
-		Global.spriteEdit.position.y += (delta * 432.0 * physicsTimeMultiplier)
+		Global.spriteEdit.position.y += (delta * 400.0)
 	elif $EditControls/MoveMenuDown.overlaps_area(Global.mouse.area):
-		Global.spriteEdit.position.y -= (delta * 432.0 * physicsTimeMultiplier)
+		Global.spriteEdit.position.y -= (delta * 400.0)
 	
 	if Global.spriteEdit.position.y > 66:
 		Global.spriteEdit.position.y = 66

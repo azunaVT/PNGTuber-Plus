@@ -22,6 +22,17 @@ Sprites can now do a subtle (or chaotic) rotational wobble. Frequency + amplitud
 ![Rotation Wobble](https://github.com/user-attachments/assets/f45c3cc8-98d8-48cf-8821-b015de0a2f78)
 
 
+### 🔗 Wobble Sync Groups
+
+Keep multiple sprites in sync with wobble sync groups. Create groups, assign sprites, and all wobble parameters (X/Y/Rotation frequency, amplitude) automatically sync across group members. Perfect for ears, hair, accessories, or any elements that should move together.
+
+* Create custom sync groups with descriptive names
+* Assign multiple sprites to the same group
+* Edit any group member's wobble settings to update the entire group
+* Visual indicators show which sprites are synced
+* Groups persist in save files
+
+
 ### ⌨️ Enhanced Modifier Keys
 
 Supports combos like Ctrl+Shift+Alt+Cmd. For people with more keybinds than fingers.
