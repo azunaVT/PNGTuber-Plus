@@ -6,6 +6,8 @@ var type = "sprite"
 var imageData = null
 var tex = null
 @export var path = ""
+## Custom display name for the sprite (separate from file path)
+var displayName = ""
 
 var loadedImageData = null
 
@@ -319,8 +321,6 @@ func calculateParentOpacityMultiplier():
 
 ## Update wobble parameters and sync to group if needed
 func updateWobbleParameter(parameter: String, value: float):
-	print("DEBUG: updateWobbleParameter called - parameter: ", parameter, ", value: ", value, ", sprite ID: ", id)
-	print("DEBUG: Current wobbleSyncGroup: '", wobbleSyncGroup, "'")
 	
 	# Update this sprite's parameter first
 	match parameter:
@@ -331,17 +331,15 @@ func updateWobbleParameter(parameter: String, value: float):
 		"rFrq": rFrq = value
 		"rAmp": rAmp = value
 	
-	print("DEBUG: Parameter updated on sprite. New values - xFrq:", xFrq, " xAmp:", xAmp, " yFrq:", yFrq, " yAmp:", yAmp, " rFrq:", rFrq, " rAmp:", rAmp)
 	
 	# If this sprite is in a sync group, update the entire group
 	if wobbleSyncGroup != "" and WobbleSyncManager:
-		print("DEBUG: Sprite is in sync group '", wobbleSyncGroup, "' - updating group wobble parameters")
 		WobbleSyncManager.updateGroupWobble(wobbleSyncGroup, xFrq, xAmp, yFrq, yAmp, rFrq, rAmp)
 		
 		# Don't refresh UI immediately - let the sync process complete first
 		# The wobble sync control will handle UI updates when needed
 	else:
-		print("DEBUG: Sprite not in sync group or WobbleSyncManager not available")
+		pass  # Individual sprite update - no sync needed
 
 ## Check if this sprite is synced to a group
 func isSynced() -> bool:

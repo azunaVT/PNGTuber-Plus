@@ -55,11 +55,10 @@ func updateGroupDropdown():
 	# Add existing groups
 	if WobbleSyncManager:
 		var groups = WobbleSyncManager.getGroupNames()
-		print("DEBUG: updateGroupDropdown - available groups: ", groups)
 		for group_name in groups:
 			groupDropdown.add_item(group_name)
 	else:
-		print("DEBUG: updateGroupDropdown - WobbleSyncManager not available")
+		pass  # WobbleSyncManager not available
 	
 	# Add "Create New..." option
 	groupDropdown.add_separator()
@@ -67,7 +66,6 @@ func updateGroupDropdown():
 	
 	# Select current group if sprite is synced
 	if currentSprite != null and currentSprite.wobbleSyncGroup != "":
-		print("DEBUG: updateGroupDropdown - sprite has group '", currentSprite.wobbleSyncGroup, "'")
 		var group_index = -1
 		for i in range(groupDropdown.get_item_count()):
 			if groupDropdown.get_item_text(i) == currentSprite.wobbleSyncGroup:
@@ -75,13 +73,10 @@ func updateGroupDropdown():
 				break
 		
 		if group_index != -1:
-			print("DEBUG: updateGroupDropdown - selecting group at index ", group_index)
 			groupDropdown.selected = group_index
 		else:
-			print("DEBUG: updateGroupDropdown - group '", currentSprite.wobbleSyncGroup, "' not found in dropdown")
 			groupDropdown.selected = 0  # Select "None"
 	else:
-		print("DEBUG: updateGroupDropdown - sprite has no group, selecting 'None'")
 		groupDropdown.selected = 0  # Select "None"
 	
 	updating_dropdown = false
@@ -100,11 +95,9 @@ func updateSyncIndicator():
 
 ## Set the current sprite to manage
 func setSprite(sprite):
-	print("DEBUG: WobbleSyncControl.setSprite called with sprite ID: ", sprite.id if sprite else "null")
 	currentSprite = sprite
 	if currentSprite:
-		print("DEBUG: Current sprite wobbleSyncGroup: '", currentSprite.wobbleSyncGroup, "'")
-		print("DEBUG: Current sprite isSynced(): ", currentSprite.isSynced())
+		pass  # Sprite is valid
 	updateUI()
 
 ## Get available groups for the dropdown (excluding "None" and "Create New...")
@@ -120,18 +113,15 @@ func _on_group_dropdown_selected(index: int):
 		return
 	
 	var selected_text = groupDropdown.get_item_text(index)
-	print("DEBUG: Dropdown selected: '", selected_text, "' at index ", index)
 	
 	match selected_text:
 		"None":
 			# Remove sprite from any group
 			if currentSprite.wobbleSyncGroup != "" and WobbleSyncManager:
-				print("DEBUG: Removing sprite ID ", currentSprite.id, " from group '", currentSprite.wobbleSyncGroup, "'")
 				WobbleSyncManager.removeSpriteFromAllGroups(currentSprite.id)
 				Global.pushUpdate("Removed sprite from wobble sync group")
 		
 		"Create New...":
-			print("DEBUG: User selected 'Create New...' from dropdown")
 			# Show create group dialog
 			groupNameInput.text = ""
 			groupNameInput.placeholder_text = "Enter group name..."
@@ -143,45 +133,39 @@ func _on_group_dropdown_selected(index: int):
 		_:
 			# Join selected group
 			if WobbleSyncManager and WobbleSyncManager.hasGroup(selected_text):
-				print("DEBUG: Adding sprite ID ", currentSprite.id, " to group '", selected_text, "'")
 				WobbleSyncManager.addSpriteToGroup(currentSprite.id, selected_text)
 				# Refresh sprite editor to show updated wobble values
 				if Global.spriteEdit:
 					Global.spriteEdit.setImage()
 			else:
-				print("DEBUG: Group '", selected_text, "' not found or WobbleSyncManager not available")
-	
+				pass  # Group doesn't exist
+
 	updateSyncIndicator()
 
 ## Handle create group dialog confirmation
 func _on_create_group_confirmed():
 	var group_name = groupNameInput.text.strip_edges()
-	print("DEBUG: Create group confirmed with name: '", group_name, "'")
 	
 	if group_name == "":
-		print("DEBUG: Group name is empty")
 		Global.pushUpdate("Group name cannot be empty")
 		return
 	
 	if WobbleSyncManager and WobbleSyncManager.hasGroup(group_name):
-		print("DEBUG: Group '", group_name, "' already exists")
 		Global.pushUpdate("Group \"" + group_name + "\" already exists")
 		return
 	
 	# Create group with current sprite
 	if currentSprite != null and WobbleSyncManager:
-		print("DEBUG: Creating group '", group_name, "' with sprite ID ", currentSprite.id)
 		if WobbleSyncManager.createGroup(group_name, currentSprite.id):
-			print("DEBUG: Group created successfully")
 			createGroupDialog.hide()
 			updateUI()
 			# Refresh sprite editor to show sync status
 			if Global.spriteEdit:
 				Global.spriteEdit.setImage()
 		else:
-			print("DEBUG: Failed to create group")
+			pass  # Failed to create group
 	else:
-		print("DEBUG: No current sprite to add to group")
+		pass  # No sprite or WobbleSyncManager not available
 
 ## Handle create group dialog cancellation
 func _on_create_group_cancelled():
@@ -203,5 +187,4 @@ func canSync() -> bool:
 
 ## Force refresh the UI - useful after loading saves
 func forceRefresh():
-	print("DEBUG: WobbleSyncControl.forceRefresh called")
 	updateUI()

@@ -280,7 +280,6 @@ func blinking():
 			blinkTick = -12
 	
 func epicFail(err):
-	print(fail)
 	if fail == null:
 		return
 	

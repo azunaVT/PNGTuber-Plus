@@ -61,7 +61,6 @@ func _on_parameter_value_changed(new_value: float):
 	if not target_sprite or sprite_property == "":
 		return
 	
-	print("DEBUG: ParameterSlider ", sprite_property, " changed to: ", new_value)
 	
 	target_sprite.set(sprite_property, new_value)
 	

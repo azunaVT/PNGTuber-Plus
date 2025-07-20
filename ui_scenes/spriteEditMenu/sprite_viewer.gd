@@ -24,8 +24,6 @@ func _ready():
 	
 	# Find the wobble sync control node
 	wobbleSyncControl = find_child("WobbleSyncControl")
-	if wobbleSyncControl == null:
-		print("Warning: WobbleSyncControl node not found in sprite viewer")
 	
 	# Set up blend mode dropdown
 	setupBlendModeDropdown()

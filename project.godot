@@ -50,11 +50,6 @@ window/vsync/vsync_mode=0
 
 project/assembly_name="PNGTuberPlus"
 
-[editor]
-
-version_control/plugin_name=""
-version_control/autoload_on_startup=false
-
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/godot-streamdeck-addon/plugin.cfg")

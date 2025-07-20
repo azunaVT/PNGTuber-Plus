@@ -75,6 +75,7 @@ func _ready():
 	Global.main = self
 	Global.fail = $Failed
 	
+	var newUser = Saving.settings["newUser"]
 	
 	Global.connect("startSpeaking",onSpeak)
 	
@@ -83,22 +84,14 @@ func _ready():
 	if streamdeck_node != null:
 		streamdeck_node.on_key_down.connect(changeCostumeStreamDeck)
 	
-	if Saving.settings["newUser"]:
-		print("DEBUG: MAIN._ready() - New user detected, loading default avatar")
-		_on_load_dialog_file_selected("default")
-		Saving.settings["newUser"] = false
-		saveLoaded = true
+	if newUser:
+		loadDefaultAvatar()
 	else:
-		print("DEBUG: MAIN._ready() - Existing user, loading last avatar")
-		var lastAvatar = Saving.settings["lastAvatar"]
-		print("DEBUG: lastAvatar setting: ", lastAvatar, " (type: ", typeof(lastAvatar), ")")
-		# Ensure lastAvatar is a string, not a Dictionary
-		if typeof(lastAvatar) == TYPE_STRING and lastAvatar != "":
-			print("DEBUG: Loading avatar from: ", lastAvatar)
-			_on_load_dialog_file_selected(lastAvatar)
+		var lastAvatar = Saving.settings.get("lastAvatar", "")
+		if lastAvatar != null and lastAvatar != "" and typeof(lastAvatar) == TYPE_STRING and FileAccess.file_exists(lastAvatar):
+			loadAvatar(lastAvatar)
 		else:
-			print("WARNING: lastAvatar setting is invalid, loading default instead")
-			_on_load_dialog_file_selected("default")
+			loadDefaultAvatar()
 		
 		$ControlPanel/volumeSlider.value = Saving.settings["volume"]
 		$ControlPanel/sensitiveSlider.value = Saving.settings["sense"]
@@ -425,36 +418,15 @@ func _on_load_button_pressed():
 
 #LOAD AVATAR
 func _on_load_dialog_file_selected(path):
-	print("DEBUG: _on_load_dialog_file_selected called with path: ", path, " (type: ", typeof(path), ")")
-	
 	# Handle case where path might be a Dictionary instead of string
 	if typeof(path) == TYPE_DICTIONARY:
-		print("ERROR: Expected string path but got Dictionary: ", path)
+		push_error("Expected string path but got Dictionary: " + str(path))
 		return
 	
-	print("DEBUG: About to read save data from: ", path)
 	var data = Saving.read_save(path)
-	print("DEBUG: Save data read. Data type: ", typeof(data), ", null check: ", data == null)
 	
 	if data == null:
-		print("DEBUG: Save data is null, returning")
 		return
-	
-	print("DEBUG: Save data keys: ", data.keys() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
-	print("DEBUG: Save data size: ", data.size() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
-	
-	# Check the structure of the first few items
-	if typeof(data) == TYPE_DICTIONARY:
-		var count = 0
-		for key in data.keys():
-			if count < 3:  # Just show first 3 items for debugging
-				print("DEBUG: data[", key, "] = ", data[key])
-				print("DEBUG: data[", key, "] type = ", typeof(data[key]))
-				if typeof(data[key]) == TYPE_DICTIONARY and data[key].has("path"):
-					print("DEBUG: data[", key, "][\"path\"] = ", data[key]["path"])
-				else:
-					print("DEBUG: data[", key, "] doesn't have 'path' key or isn't a dictionary")
-				count += 1
 	
 	origin.queue_free()
 	var new = Node2D.new()
@@ -462,17 +434,19 @@ func _on_load_dialog_file_selected(path):
 	origin = new
 	
 	for item in data:
-		print("DEBUG: Processing item: ", item, ", data type: ", typeof(data[item]))
 		if typeof(data[item]) != TYPE_DICTIONARY:
-			print("DEBUG: Skipping item ", item, " - not a dictionary")
 			continue
 		
 		if not data[item].has("path"):
-			print("DEBUG: Skipping item ", item, " - no 'path' key. Keys: ", data[item].keys())
 			continue
 		
 		var sprite = spriteObject.instantiate()
 		sprite.path = data[item]["path"]
+		
+		# Load display name (with backward compatibility)
+		if data[item].has("displayName"):
+			sprite.displayName = data[item]["displayName"]
+		
 		sprite.id = data[item]["identification"]
 		sprite.parentId = data[item]["parentId"]
 		
@@ -542,23 +516,8 @@ func _on_load_dialog_file_selected(path):
 	Global.spriteList.updateData()
 	
 	# Load wobble sync groups
-	print("DEBUG: About to check for wobble sync groups...")
-	print("DEBUG: data type: ", typeof(data), ", data.keys(): ", data.keys() if typeof(data) == TYPE_DICTIONARY else "not a dictionary")
-	print("DEBUG: data.has('wobbleSyncGroups'): ", data.has("wobbleSyncGroups"))
-	print("DEBUG: WobbleSyncManager exists: ", WobbleSyncManager != null)
-	if WobbleSyncManager != null:
-		print("DEBUG: WobbleSyncManager type: ", typeof(WobbleSyncManager))
-	
-	# Show save data content related to wobble sync
-	if data.has("wobbleSyncGroups"):
-		print("DEBUG: wobbleSyncGroups data found: ", data["wobbleSyncGroups"])
-	else:
-		print("DEBUG: No wobbleSyncGroups found in save data")
-	
 	if data.has("wobbleSyncGroups") and WobbleSyncManager:
-		print("DEBUG: Loading wobble sync groups. Data: ", data["wobbleSyncGroups"])
 		await WobbleSyncManager.loadSaveData(data["wobbleSyncGroups"])
-		print("DEBUG: Finished loading wobble sync groups")
 		# Refresh wobble sync UI after groups are loaded
 		if Global.spriteEdit and Global.spriteEdit.wobbleSyncControl:
 			Global.spriteEdit.wobbleSyncControl.updateUI()
@@ -568,14 +527,6 @@ func _on_load_dialog_file_selected(path):
 			# Force refresh in case timing issues
 			await get_tree().process_frame
 			Global.spriteEdit.wobbleSyncControl.forceRefresh()
-	else:
-		print("DEBUG: Not loading wobble sync groups - missing data or manager")
-	
-	# Final debug check
-	if WobbleSyncManager:
-		print("DEBUG: Final check - WobbleSyncManager has ", WobbleSyncManager.getGroupNames().size(), " groups: ", WobbleSyncManager.getGroupNames())
-	else:
-		print("DEBUG: No wobble sync groups to load. has key: ", data.has("wobbleSyncGroups"), ", WobbleSyncManager: ", WobbleSyncManager != null)
 	
 	# Update opacity shaders for all loaded sprites after wobble sync data is applied
 	await get_tree().process_frame  # Wait for all sprites to be fully initialized
@@ -587,7 +538,15 @@ func _on_load_dialog_file_selected(path):
 	Global.pushUpdate("Loaded avatar at: " + path)
 	
 	onWindowSizeChange()
-	
+
+## Load the default avatar data
+func loadDefaultAvatar():
+	_on_load_dialog_file_selected("default")
+
+## Load avatar from a specific file path
+func loadAvatar(path: String):
+	_on_load_dialog_file_selected(path)
+
 #SAVE AVATAR
 func _on_save_dialog_file_selected(path):
 	var data = {}
@@ -599,6 +558,7 @@ func _on_save_dialog_file_selected(path):
 			data[id] = {}
 			data[id]["type"] = "sprite"
 			data[id]["path"] = child.path
+			data[id]["displayName"] = child.displayName
 			data[id]["imageData"] = Marshalls.raw_to_base64(child.imageData.save_png_to_buffer())
 			data[id]["identification"] = child.id
 			data[id]["parentId"] = child.parentId

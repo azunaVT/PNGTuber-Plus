@@ -45,7 +45,6 @@ func _on_wobble_value_changed(new_value: float):
 	if not target_sprite or parameter_name == "":
 		return
 	
-	print("DEBUG: WobbleSlider ", parameter_name, " changed to: ", new_value)
 	target_sprite.updateWobbleParameter(parameter_name, new_value)
 	
 	# Update visual feedback for sync status
