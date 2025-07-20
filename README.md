@@ -31,7 +31,7 @@ Keep multiple sprites in sync with wobble sync groups. Create groups, assign spr
 * Edit any group member's wobble settings to update the entire group
 * Visual indicators show which sprites are synced
 * Groups persist in save files
-
+ 
 
 ### ⌨️ Enhanced Modifier Keys
 
