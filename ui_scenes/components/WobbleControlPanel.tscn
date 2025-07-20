@@ -1,0 +1,75 @@
+[gd_scene load_steps=8 format=4 uid="uid://bp2q8r4l6lam3"]
+
+[ext_resource type="Script" path="res://ui_scenes/components/WobbleControlPanel.gd" id="1_wobble_panel_script"]
+[ext_resource type="PackedScene" uid="uid://c8q7x2n9p4r5s" path="res://ui_scenes/components/WobbleSlider.tscn" id="2_wobble_slider"]
+
+[node name="WobbleControlPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_wobble_panel_script")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="XFrequencySlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "X Frequency"
+min_value = 0.0
+max_value = 10.0
+step = 0.1
+value_format = "%.1f"
+value_suffix = " Hz"
+parameter_name = "xFrq"
+
+[node name="XAmplitudeSlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "X Amplitude"
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value_format = "%.0f"
+parameter_name = "xAmp"
+
+[node name="YFrequencySlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "Y Frequency"
+min_value = 0.0
+max_value = 10.0
+step = 0.1
+value_format = "%.1f"
+value_suffix = " Hz"
+parameter_name = "yFrq"
+
+[node name="YAmplitudeSlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "Y Amplitude"
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value_format = "%.0f"
+parameter_name = "yAmp"
+
+[node name="RFrequencySlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "Rotation Frequency"
+min_value = 0.0
+max_value = 10.0
+step = 0.1
+value_format = "%.1f"
+value_suffix = " Hz"
+parameter_name = "rFrq"
+
+[node name="RAmplitudeSlider" parent="VBoxContainer" instance=ExtResource("2_wobble_slider")]
+layout_mode = 2
+label_text = "Rotation Amplitude"
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value_format = "%.0f"
+value_suffix = "%"
+parameter_name = "rAmp"

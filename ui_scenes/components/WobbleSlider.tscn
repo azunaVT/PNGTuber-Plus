@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8q7x2oap4r5s"]
+
+[ext_resource type="PackedScene" uid="uid://bxm5q6n8x7p2q" path="res://ui_scenes/components/LabeledSlider.tscn" id="1_base_slider"]
+[ext_resource type="Script" uid="uid://fsc2h7ajjcbs" path="res://ui_scenes/components/WobbleSlider.gd" id="2_wobble_script"]
+
+[node name="WobbleSlider" instance=ExtResource("1_base_slider")]
+script = ExtResource("2_wobble_script")
+parameter_name = ""
+
+[node name="Label" parent="." index="0"]
+anchors_preset = 10
+grow_horizontal = 2
+text = "Value: 0"
+horizontal_alignment = 0
+
+[node name="HSlider" parent="." index="1"]
+anchors_preset = 12
+grow_horizontal = 0
+grow_vertical = 0

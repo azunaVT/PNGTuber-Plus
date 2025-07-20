@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://fgee1pq0yqav"]
+
+[ext_resource type="PackedScene" uid="uid://bxm5q6n8x7p2q" path="res://ui_scenes/components/LabeledSlider.tscn" id="1_base_slider"]
+[ext_resource type="Script" uid="uid://6maee7dhl7vl" path="res://ui_scenes/components/ParameterSlider.gd" id="2_parameter_script"]
+
+[node name="ParameterSlider" instance=ExtResource("1_base_slider")]
+script = ExtResource("2_parameter_script")
+parameter_name = ""
+sprite_property = ""

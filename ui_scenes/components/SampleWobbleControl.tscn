@@ -1,0 +1,47 @@
+[gd_scene load_steps=4 format=4 uid="uid://bh7n2k1q5m8ya"]
+
+[ext_resource type="PackedScene" uid="uid://c8q7x2n9p4r5s" path="res://ui_scenes/components/WobbleSlider.tscn" id="1_wobble_x_frq"]
+[ext_resource type="PackedScene" uid="uid://c8q7x2n9p4r5s" path="res://ui_scenes/components/WobbleSlider.tscn" id="2_wobble_x_amp"]
+[ext_resource type="PackedScene" uid="uid://d9t8y3m0k6l1n" path="res://ui_scenes/components/ParameterSlider.tscn" id="3_drag_slider"]
+
+[node name="SampleWobbleControl" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -1680.0
+offset_bottom = -1080.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="XFrequencySlider" parent="VBoxContainer" instance=ExtResource("1_wobble_x_frq")]
+layout_mode = 2
+label_text = "X Frequency"
+min_value = 0.0
+max_value = 10.0
+step = 0.1
+value_format = "%.1f"
+value_suffix = " Hz"
+parameter_name = "xFrq"
+
+[node name="XAmplitudeSlider" parent="VBoxContainer" instance=ExtResource("2_wobble_x_amp")]
+layout_mode = 2
+label_text = "X Amplitude"
+min_value = 0.0
+max_value = 100.0
+step = 1.0
+value_format = "%.0f"
+parameter_name = "xAmp"
+
+[node name="DragSlider" parent="VBoxContainer" instance=ExtResource("3_drag_slider")]
+layout_mode = 2
+label_text = "Drag"
+min_value = 0.0
+max_value = 10.0
+step = 0.1
+value_format = "%.1f"
+sprite_property = "dragSpeed"
