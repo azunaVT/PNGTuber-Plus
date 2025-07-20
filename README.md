@@ -15,7 +15,7 @@ Added a proper opacity slider for sprites, with an "affect children" toggle. Cli
 ![Opacity Demo](https://github.com/user-attachments/assets/d5a05508-1cb1-46e0-8c90-d0aac73398db)
 
 
-### � Blend Modes
+### 🎨 Blend Modes
 
 Photoshop-style blend modes for sprites! Choose from Normal, Multiply, Screen, Overlay, Soft Light, Hard Light, Color Dodge, Color Burn, Darken, Lighten, Add, and Subtract. Perfect for lighting effects, shadows, or artistic styling.
 
@@ -23,7 +23,7 @@ Photoshop-style blend modes for sprites! Choose from Normal, Multiply, Screen, O
 * Works alongside opacity controls
 
 
-### �🌀 Rotation Wobble
+### 🌀 Rotation Wobble
 
 Sprites can now do a subtle (or chaotic) rotational wobble. Frequency + amplitude sliders included.
 
