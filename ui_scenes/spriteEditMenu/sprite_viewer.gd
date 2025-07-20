@@ -10,6 +10,7 @@ extends Node2D
 
 @onready var coverCollider = $Area2D/CollisionShape2D
 @onready var wobbleSyncControl = null  # Will be assigned in _ready()
+@onready var blendModeDropdown = $Opacity/blendModeDropdown
 
 func _ready():
 	Global.spriteEdit = self
@@ -18,6 +19,9 @@ func _ready():
 	wobbleSyncControl = find_child("WobbleSyncControl")
 	if wobbleSyncControl == null:
 		print("Warning: WobbleSyncControl node not found in sprite viewer")
+	
+	# Set up blend mode dropdown
+	setupBlendModeDropdown()
 	
 func setImage():
 	if Global.heldSprite == null:
@@ -81,6 +85,7 @@ func setImage():
 	$Opacity/opacityLabel.text = "opacity: " + str(int(Global.heldSprite.spriteOpacity * 100)) + "%"
 	$Opacity/opacitySlider.value = Global.heldSprite.spriteOpacity
 	$Opacity/affectChildrenCheck.button_pressed = Global.heldSprite.affectChildrenOpacity
+	$Opacity/blendModeDropdown.selected = Global.heldSprite.blendMode
 	
 	$VisToggle/setToggle/Label.text = "toggle: \"" + Global.heldSprite.toggle +  "\""
 	
@@ -449,3 +454,16 @@ func _on_opacity_slider_value_changed(value):
 func _on_affect_children_check_toggled(button_pressed):
 	Global.heldSprite.affectChildrenOpacity = button_pressed
 	Global.heldSprite.updateOpacity()
+
+## Set up the blend mode dropdown with all available blend modes
+func setupBlendModeDropdown():
+	blendModeDropdown.clear()
+	var blendModeNames = BlendModeManager.get_blend_mode_names()
+	for mode_name in blendModeNames:
+		blendModeDropdown.add_item(mode_name)
+
+## Handle blend mode dropdown selection
+func _on_blend_mode_dropdown_item_selected(index: int):
+	if Global.heldSprite != null:
+		Global.heldSprite.updateBlendMode(index)
+		Global.pushUpdate("Blend mode set to: " + BlendModeManager.get_blend_mode_name(index))

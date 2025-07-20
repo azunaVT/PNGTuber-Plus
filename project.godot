@@ -30,6 +30,7 @@ buses/channel_disable_time=0.0
 Saving="*res://autoload/saving.gd"
 Global="*res://autoload/global.gd"
 WobbleSyncManager="*res://autoload/wobble_sync_manager.gd"
+BlendModeManager="*res://autoload/blend_mode_manager.gd"
 ElgatoStreamDeck="*res://addons/godot-streamdeck-addon/singleton.gd"
 DefaultAvatarData="*res://autoload/defaultAvatarData.gd"
 

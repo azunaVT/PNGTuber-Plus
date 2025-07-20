@@ -527,6 +527,8 @@ func _on_load_dialog_file_selected(path):
 			sprite.spriteOpacity = data[item]["spriteOpacity"]
 		if data[item].has("affectChildrenOpacity"):
 			sprite.affectChildrenOpacity = data[item]["affectChildrenOpacity"]
+		if data[item].has("blendMode"):
+			sprite.blendMode = data[item]["blendMode"]
 		
 		# Load wobble sync group (with backward compatibility)
 		if data[item].has("wobbleSyncGroup"):
@@ -638,6 +640,7 @@ func _on_save_dialog_file_selected(path):
 			
 			data[id]["spriteOpacity"] = child.spriteOpacity
 			data[id]["affectChildrenOpacity"] = child.affectChildrenOpacity
+			data[id]["blendMode"] = child.blendMode
 			
 			# Save wobble sync group
 			data[id]["wobbleSyncGroup"] = child.wobbleSyncGroup
@@ -724,6 +727,7 @@ func _on_duplicate_button_pressed():
 	
 	sprite.spriteOpacity = Global.heldSprite.spriteOpacity
 	sprite.affectChildrenOpacity = Global.heldSprite.affectChildrenOpacity
+	sprite.blendMode = Global.heldSprite.blendMode
 	
 	# Copy wobble sync group
 	sprite.wobbleSyncGroup = Global.heldSprite.wobbleSyncGroup

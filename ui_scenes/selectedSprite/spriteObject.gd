@@ -28,7 +28,7 @@ var imageSize = Vector2.ZERO
 @onready var wob = $WobbleOrigin
 
 @onready var outlineScene = preload("res://ui_scenes/selectedSprite/outline.tscn")
-@onready var opacityShader = preload("res://ui_scenes/selectedSprite/opacity.gdshader")
+@onready var opacityBlendShader = preload("res://ui_scenes/selectedSprite/opacity_blend.gdshader")
 
 var opacityMaterial = null
 
@@ -90,6 +90,7 @@ var time = 0.0  # Time accumulator for physics calculations
 #Opacity
 var spriteOpacity = 1.0
 var affectChildrenOpacity = false
+var blendMode = 0  # Default to Normal blend mode
 
 #Vis toggle
 var toggle = "null"
@@ -517,13 +518,20 @@ func updateShaderOpacity():
 	var editorAlpha = sprite.modulate.a
 	var finalOpacity = totalOpacity * editorAlpha
 	
-	# Always apply the opacity shader to ensure it's loaded
+	# Always apply the opacity blend shader to ensure it's loaded
 	if opacityMaterial == null:
 		opacityMaterial = ShaderMaterial.new()
-		opacityMaterial.shader = opacityShader
+		opacityMaterial.shader = opacityBlendShader
 	
 	opacityMaterial.set_shader_parameter("opacity", finalOpacity)
+	opacityMaterial.set_shader_parameter("blend_mode", blendMode)
 	sprite.material = opacityMaterial
+
+## Update the blend mode and refresh the shader
+func updateBlendMode(newBlendMode: int):
+	if BlendModeManager.is_valid_blend_mode(newBlendMode):
+		blendMode = newBlendMode
+		updateShaderOpacity()  # Refresh shader with new blend mode
 
 func updateChildrenOpacityRecursively():
 	var linkedSprites = getAllLinkedSprites()
