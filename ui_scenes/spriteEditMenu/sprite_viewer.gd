@@ -353,8 +353,11 @@ func changeRotLimit():
 	
 	$VBoxContainer/RotationalLimitsSection/RotBack/RotLineDisplay.rotation_degrees = Global.heldSprite.rLimitMin
 	$VBoxContainer/RotationalLimitsSection/RotBack/RotLineDisplay2.rotation_degrees = Global.heldSprite.rLimitMax
-
+	
 func setLayerButtons():
+	if Global.heldSprite == null:
+		return
+		
 	var a = Global.heldSprite.costumeLayers.duplicate()
 	
 	$VBoxContainer/LayersSection/HBoxContainer/Layer1Container/Layer1.frame = 1-a[0]
@@ -368,6 +371,10 @@ func setLayerButtons():
 	$VBoxContainer/LayersSection/HBoxContainer2/Layer9Container/Layer9.frame = 1-a[8]
 	$VBoxContainer/LayersSection/HBoxContainer2/Layer10Container/Layer10.frame = 1-a[9]
 	
+	# Update checkmarks to show current costume layer
+	updateLayerCheckmarks()
+	
+	# Update sprite visibility for all sprites based on current costume
 	var nodes = get_tree().get_nodes_in_group("saved")
 	for sprite in nodes:
 		if sprite.costumeLayers[Global.main.costume - 1] == 1:
@@ -376,7 +383,45 @@ func setLayerButtons():
 		else:
 			sprite.visible = false
 			sprite.changeCollision(false)
-		
+	
+	# Update the sprite list to reflect visibility changes
+	Global.spriteList.updateAllVisible()
+
+func updateLayerCheckmarks():
+	# Hide all checkmarks first
+	$VBoxContainer/LayersSection/HBoxContainer/Layer1Container/Layer1/Checkmark1.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer/Layer2Container/Layer2/Checkmark2.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer/Layer3Container/Layer3/Checkmark3.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer/Layer4Container/Layer4/Checkmark4.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer/Layer5Container/Layer5/Checkmark5.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer2/Layer6Container/Layer6/Checkmark6.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer2/Layer7Container/Layer7/Checkmark7.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer2/Layer8Container/Layer8/Checkmark8.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer2/Layer9Container/Layer9/Checkmark9.visible = false
+	$VBoxContainer/LayersSection/HBoxContainer2/Layer10Container/Layer10/Checkmark10.visible = false
+	
+	# Show checkmark for current costume layer
+	match Global.main.costume:
+		1:
+			$VBoxContainer/LayersSection/HBoxContainer/Layer1Container/Layer1/Checkmark1.visible = true
+		2:
+			$VBoxContainer/LayersSection/HBoxContainer/Layer2Container/Layer2/Checkmark2.visible = true
+		3:
+			$VBoxContainer/LayersSection/HBoxContainer/Layer3Container/Layer3/Checkmark3.visible = true
+		4:
+			$VBoxContainer/LayersSection/HBoxContainer/Layer4Container/Layer4/Checkmark4.visible = true
+		5:
+			$VBoxContainer/LayersSection/HBoxContainer/Layer5Container/Layer5/Checkmark5.visible = true
+		6:
+			$VBoxContainer/LayersSection/HBoxContainer2/Layer6Container/Layer6/Checkmark6.visible = true
+		7:
+			$VBoxContainer/LayersSection/HBoxContainer2/Layer7Container/Layer7/Checkmark7.visible = true
+		8:
+			$VBoxContainer/LayersSection/HBoxContainer2/Layer8Container/Layer8/Checkmark8.visible = true
+		9:
+			$VBoxContainer/LayersSection/HBoxContainer2/Layer9Container/Layer9/Checkmark9.visible = true
+		10:
+			$VBoxContainer/LayersSection/HBoxContainer2/Layer10Container/Layer10/Checkmark10.visible = true
 
 
 func _on_layer_button_1_pressed():
@@ -476,6 +521,11 @@ func layerSelected():
 			newPos = $VBoxContainer/LayersSection/HBoxContainer2/Layer9Container/Layer9.position
 		10:
 			newPos = $VBoxContainer/LayersSection/HBoxContainer2/Layer10Container/Layer10.position
+	
+	# Update selection indicator position if it exists
+	var select_node = get_node_or_null("VBoxContainer/LayersSection/Select")
+	if select_node:
+		select_node.position = newPos
 
 
 func _on_clip_linked_toggled(button_pressed):
@@ -492,7 +542,7 @@ func _on_delete_pressed():
 	Global.heldSprite.makeVis()
 
 func _on_set_toggle_pressed():
-	$VBoxContainer/BoxContainer/setToggle/Labelbel.text = "toggle: AWAITING INPUT"
+	$VBoxContainer/BoxContainer/setToggle/Label.text = "toggle: AWAITING INPUT"
 	await Global.main.fatfuckingballs
 	
 	var keys = await Global.main.spriteVisToggles

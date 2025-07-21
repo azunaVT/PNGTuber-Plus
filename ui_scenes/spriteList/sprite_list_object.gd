@@ -53,6 +53,16 @@ func _setup_context_menu():
 	# Add rename option
 	context_menu.add_item("Rename", 0)
 	context_menu.id_pressed.connect(_on_context_menu_selected)
+	
+	# Wait for menu to be ready, then adjust size
+	context_menu.ready.connect(_adjust_menu_size)
+
+## Adjust the context menu size to be more compact
+func _adjust_menu_size():
+	if context_menu:
+		# Let the menu calculate its natural size first
+		await get_tree().process_frame
+		context_menu.reset_size()  # Reset to content-based size
 
 ## Handle GUI input events on the button
 func _on_button_gui_input(event: InputEvent):

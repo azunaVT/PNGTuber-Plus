@@ -477,9 +477,9 @@ func _on_load_dialog_file_selected(path):
 		
 		if data[item].has("costumeLayers"):
 			sprite.costumeLayers = str_to_var(data[item]["costumeLayers"]).duplicate()
-			if sprite.costumeLayers.size() < 8:
-				for i in range(5):
-					sprite.costumeLayers.append(1)
+			# Ensure we have exactly 10 costume layers
+			while sprite.costumeLayers.size() < 10:
+				sprite.costumeLayers.append(1)
 
 		if data[item].has("stretchAmount"):
 			sprite.stretchAmount = data[item]["stretchAmount"]
@@ -718,9 +718,11 @@ func changeCostumeStreamDeck(id: String):
 		"9":changeCostume(9)
 		"10":changeCostume(10)
 
-func changeCostume(newCostume):
+func changeCostume(newCostume, preserve_selection: bool = false):
 	costume = newCostume
-	Global.heldSprite = null
+	# Only clear heldSprite for actual costume changes, not layer updates
+	if not preserve_selection:
+		Global.heldSprite = null
 	var nodes = get_tree().get_nodes_in_group("saved")
 	for sprite in nodes:
 		if sprite.costumeLayers[newCostume-1] == 1:
@@ -743,7 +745,7 @@ func moveSpriteMenu(delta):
 	
 	var size = get_viewport().get_visible_rect().size
 	
-	var windowLength = 1800
+	var windowLength = 2000
 	
 	$ViewerArrows/Arrows.position.y =  size.y - 25
 	
