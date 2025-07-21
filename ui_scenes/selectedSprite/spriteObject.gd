@@ -100,6 +100,11 @@ var toggle = "null"
 #Wobble Sync Group
 var wobbleSyncGroup = ""
 
+#Transform
+var staticRotation = 0.0
+var mirrorHorizontal = false
+var mirrorVertical = false
+
 func _ready():
 	
 	Global.main.spriteVisToggles.connect(visToggle)
@@ -264,6 +269,7 @@ func _process(delta):
 	
 	rotationalDrag(length,delta)
 	stretch(length,delta)
+	applyStaticTransform()
 	
 	if grabDelay > 0:
 		grabDelay -= 1
@@ -431,7 +437,7 @@ func rotationalDrag(length, delta):
 	var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
 	var scaledTime = time * physicsMultiplier
 	var rotationWobble = sin(scaledTime * rFrq) * (rotationRange * rAmp * 0.01)
-	var totalRotation = yvel + rotationWobble
+	var totalRotation = yvel + rotationWobble + staticRotation
 	
 	# Use delta-based lerp for smooth rotation with slower speed
 	var lerpFactor = clamp(delta * (physicsMultiplier * 1.0), 0.0, 1.0)  # Reduced from 15.0 to 4.0
@@ -445,6 +451,20 @@ func stretch(length, delta):
 	var physicsMultiplier = Global.main.physicsTimeMultiplier if Global.main else 10.0
 	var lerpFactor = clamp(delta * (physicsMultiplier * 30.0), 0.0, 1.0)
 	sprite.scale = lerp(sprite.scale, target, lerpFactor)
+
+## Apply static transformation (mirroring)
+func applyStaticTransform():
+	var scale_x = 1.0
+	var scale_y = 1.0
+	
+	if mirrorHorizontal:
+		scale_x = -1.0
+	if mirrorVertical:
+		scale_y = -1.0
+	
+	# Apply mirror scaling while preserving the stretch scale
+	var current_scale = sprite.scale
+	sprite.scale = Vector2(abs(current_scale.x) * scale_x, abs(current_scale.y) * scale_y)
 
 func changeCollision(enable):
 	grabArea.monitorable = enable

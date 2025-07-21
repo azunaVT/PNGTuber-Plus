@@ -37,6 +37,7 @@ func _setup_slider_components():
 	_setup_limit_sliders()
 	_setup_animation_sliders()
 	_setup_opacity_slider()
+	_setup_transform_sliders()
 
 ## Set up drag slider
 func _setup_drag_slider():
@@ -104,6 +105,13 @@ func _setup_opacity_slider():
 		slider_manager.add_slider(opacity_slider)
 		opacity_slider.value_changed.connect(_on_opacity_slider_changed)
 
+## Set up transform sliders
+func _setup_transform_sliders():
+	var rotation_slider = $VBoxContainer/TransformSection/rotationSlider
+	if rotation_slider:
+		slider_manager.add_slider(rotation_slider)
+		rotation_slider.value_changed.connect(_on_transform_slider_changed)
+
 ## Generic slider change handlers
 func _on_drag_slider_value_changed(value: float):
 	if Global.heldSprite:
@@ -136,6 +144,10 @@ func _on_animation_slider_changed(value: float):
 func _on_opacity_slider_changed(value: float):
 	# Opacity slider handles its own parameter updates via sprite_property
 	pass
+
+func _on_transform_slider_changed(value: float):
+	# Transform sliders handle their own parameter updates via sprite_property
+	pass
 	
 func setImage():
 	if Global.heldSprite == null:
@@ -144,6 +156,12 @@ func setImage():
 	spriteSpin.texture = Global.heldSprite.tex
 	spriteSpin.pixel_size = 1.5 / Global.heldSprite.imageData.get_size().y
 	spriteSpin.hframes = Global.heldSprite.frames
+	
+	# Apply static rotation and mirroring to 3D preview
+	spriteSpin.rotation = Vector3(0, 0, deg_to_rad(Global.heldSprite.staticRotation))
+	var scale_x = -1.0 if Global.heldSprite.mirrorHorizontal else 1.0
+	var scale_y = -1.0 if Global.heldSprite.mirrorVertical else 1.0
+	spriteSpin.scale = Vector3(scale_x, scale_y, 1.0)
 	
 	spriteRotDisplay.texture = Global.heldSprite.tex
 	spriteRotDisplay.offset = Global.heldSprite.offset
@@ -170,6 +188,10 @@ func setImage():
 	
 	$VBoxContainer/RenderingSection/affectChildrenCheck.button_pressed = Global.heldSprite.affectChildrenOpacity
 	$VBoxContainer/RenderingSection/blendModeContainer/blendModeDropdown.selected = Global.heldSprite.blendMode
+	
+	# Update transform controls
+	$VBoxContainer/TransformSection/MirrorControls/mirrorHorizontalCheck.button_pressed = Global.heldSprite.mirrorHorizontal
+	$VBoxContainer/TransformSection/MirrorControls/mirrorVerticalCheck.button_pressed = Global.heldSprite.mirrorVertical
 	
 	$VBoxContainer/BoxContainer/setToggle/Label.text = "toggle: \"" + Global.heldSprite.toggle +  "\""
 	
@@ -261,6 +283,11 @@ func _update_all_slider_values():
 	var opacity_slider = $VBoxContainer/RenderingSection/opacitySlider
 	if opacity_slider:
 		opacity_slider.set_value(Global.heldSprite.spriteOpacity)
+	
+	# Update transform slider
+	var rotation_slider = $VBoxContainer/TransformSection/rotationSlider
+	if rotation_slider:
+		rotation_slider.set_value(Global.heldSprite.staticRotation)
 
 ## Update wobble control states based on sync status
 func updateWobbleControlStates():
@@ -553,6 +580,12 @@ func _on_set_toggle_pressed():
 func _on_affect_children_check_toggled(button_pressed):
 	Global.heldSprite.affectChildrenOpacity = button_pressed
 	Global.heldSprite.updateOpacity()
+
+func _on_mirror_horizontal_check_toggled(button_pressed):
+	Global.heldSprite.mirrorHorizontal = button_pressed
+
+func _on_mirror_vertical_check_toggled(button_pressed):
+	Global.heldSprite.mirrorVertical = button_pressed
 
 ## Set up the blend mode dropdown with all available blend modes
 func setupBlendModeDropdown():

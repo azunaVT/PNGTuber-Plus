@@ -508,6 +508,14 @@ func _on_load_dialog_file_selected(path):
 		if data[item].has("wobbleSyncGroup"):
 			sprite.wobbleSyncGroup = data[item]["wobbleSyncGroup"]
 		
+		# Load transform properties (with backward compatibility)
+		if data[item].has("staticRotation"):
+			sprite.staticRotation = data[item]["staticRotation"]
+		if data[item].has("mirrorHorizontal"):
+			sprite.mirrorHorizontal = data[item]["mirrorHorizontal"]
+		if data[item].has("mirrorVertical"):
+			sprite.mirrorVertical = data[item]["mirrorVertical"]
+		
 		origin.add_child(sprite)
 		sprite.position = str_to_var(data[item]["pos"])
 	
@@ -605,6 +613,11 @@ func _on_save_dialog_file_selected(path):
 			# Save wobble sync group
 			data[id]["wobbleSyncGroup"] = child.wobbleSyncGroup
 			
+			# Save transform properties
+			data[id]["staticRotation"] = child.staticRotation
+			data[id]["mirrorHorizontal"] = child.mirrorHorizontal
+			data[id]["mirrorVertical"] = child.mirrorVertical
+			
 		id += 1
 	
 	# Save wobble sync groups
@@ -691,6 +704,11 @@ func _on_duplicate_button_pressed():
 	
 	# Copy wobble sync group
 	sprite.wobbleSyncGroup = Global.heldSprite.wobbleSyncGroup
+	
+	# Copy transform properties
+	sprite.staticRotation = Global.heldSprite.staticRotation
+	sprite.mirrorHorizontal = Global.heldSprite.mirrorHorizontal
+	sprite.mirrorVertical = Global.heldSprite.mirrorVertical
 	
 	origin.add_child(sprite)
 	sprite.position = Global.heldSprite.position + Vector2(16,16)
