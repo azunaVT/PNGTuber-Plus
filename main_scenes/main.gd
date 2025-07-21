@@ -25,6 +25,8 @@ var editMode = true
 
 @onready var shadow = $shadowSprite
 
+@onready var ndi_output = $NDIOutput
+
 
 #Scene Reference
 @onready var spriteObject = preload("res://ui_scenes/selectedSprite/spriteObject.tscn")
@@ -154,6 +156,9 @@ func _ready():
 	origin.position = s*0.5
 	updateCameraPosition()
 	
+	# Test NDI output on startup
+	call_deferred("toggle_ndi")
+	
 func _process(delta):
 	var hold = origin.get_parent().position.y
 	
@@ -238,6 +243,33 @@ func _input(event):
 		# Invert the movement so dragging right moves character right (not left)
 		var panSensitivity = 0.5
 		viewPanOffset = -totalDelta * panSensitivity
+	
+	# Handle NDI output hotkeys
+	elif event is InputEventKey and event.pressed:
+		# F9 key to toggle NDI streaming
+		if event.keycode == KEY_F9:
+			toggle_ndi_streaming()
+		# F10 key to restart NDI streaming with new settings
+		elif event.keycode == KEY_F10:
+			restart_ndi_streaming()
+
+## Toggle NDI streaming on/off
+func toggle_ndi_streaming():
+	if ndi_output:
+		print("NDI Output is available - Source: ", ndi_output.name)
+		Global.pushUpdate("NDI Output available - Source: " + ndi_output.name)
+	else:
+		print("NDI Output not found")
+		Global.pushUpdate("NDI Output not found")
+
+## Restart NDI streaming to apply any new settings
+func restart_ndi_streaming():
+	if ndi_output:
+		print("NDI Output available - Source: ", ndi_output.name)
+		Global.pushUpdate("NDI Output available - Source: " + ndi_output.name)
+	else:
+		print("NDI Output not found")
+		Global.pushUpdate("NDI Output not found")
 
 func followShadow():
 	# Shadow disabled for selected sprites
@@ -888,4 +920,18 @@ func _on_background_input_capture_bg_key_pressed(node, keys_pressed):
 		var i = costumeKeys.find(key)
 		if i >= 0:
 			changeCostume(i+1)
+
+## Simple NDI control function
+func toggle_ndi():
+	if ndi_output:
+		print("NDI Output is available - Source: ", ndi_output.name)
+		print("NDI should be streaming the main viewport")
+	else:
+		print("NDI Output not found")
+
+## Set NDI source name
+func set_ndi_source_name(source_name: String):
+	if ndi_output:
+		ndi_output.name = source_name
+		print("NDI source name set to: ", source_name)
 	

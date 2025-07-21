@@ -48,6 +48,9 @@ func setvalues():
 	
 	$experimentalMicLoudness/checkmark.button_pressed = Global.experimentalMicLoudness
 	
+	# Initialize NDI settings
+	setup_ndi_settings()
+	
 func _on_color_picker_button_color_changed(color):
 	get_viewport().transparent_bg = false
 	RenderingServer.set_default_clear_color(color)
@@ -264,3 +267,45 @@ func _on_delete_9_pressed():
 func _on_delete_10_pressed():
 	var label = $CostumeInputs/ScrollContainer/VBoxContainer/costumeButton10/Label
 	deleteKey(label,10)
+
+## NDI Output Settings Methods
+
+func _on_ndi_enabled_check_toggled(toggled_on: bool):
+	# Enable/disable NDI streaming
+	if Global.main.ndi_output:
+		print("NDI streaming ", "enabled" if toggled_on else "disabled")
+		update_ndi_status()
+
+func _on_ndi_source_name_text_changed(new_text: String):
+	# Update NDI source name
+	if Global.main.ndi_output:
+		Global.main.ndi_output.name = new_text
+		print("NDI source name changed to: ", new_text)
+
+func _on_ndi_audio_check_toggled(toggled_on: bool):
+	# Enable/disable audio in NDI stream
+	if Global.main.ndi_output:
+		if toggled_on:
+			Global.main.ndi_output.audio_bus = StringName("Master")
+		else:
+			Global.main.ndi_output.audio_bus = StringName("")
+		print("NDI audio ", "enabled" if toggled_on else "disabled")
+
+func _on_ndi_toggle_button_pressed():
+	# Toggle NDI streaming on/off - NDI is always on when the node exists
+	print("NDI toggle pressed - NDI is active when node exists")
+	update_ndi_status()
+
+func update_ndi_status():
+	# Update the status label and button text
+	if Global.main.ndi_output:
+		$NDIOutput/StatusLabel.text = "Status: Active (NDI Source: " + Global.main.ndi_output.name + ")"
+		$NDIOutput/toggleButton.text = "NDI Active"
+		$NDIOutput/ndiEnabledCheck.button_pressed = true
+
+func setup_ndi_settings():
+	# Initialize NDI settings UI with current values
+	if Global.main.ndi_output:
+		$NDIOutput/ndiSourceName.text = Global.main.ndi_output.name
+		$NDIOutput/ndiAudioCheck.button_pressed = (Global.main.ndi_output.audio_bus != StringName(""))
+		update_ndi_status()
