@@ -271,9 +271,29 @@ func _on_delete_10_pressed():
 ## NDI Output Settings Methods
 
 func _on_ndi_enabled_check_toggled(toggled_on: bool):
-	# Enable/disable NDI streaming
-	if Global.main.ndi_output:
-		print("NDI streaming ", "enabled" if toggled_on else "disabled")
+	# Enable/disable NDI streaming by adding/removing the NDI node
+	if toggled_on:
+		# Enable NDI - create the node if it doesn't exist
+		if not Global.main.ndi_output:
+			var ndi_node = NDIOutput.new()
+			ndi_node.set_name("NDIOutput")  # Scene tree node name
+			var source_name = $NDIOutput/ndiSourceName.text
+			if source_name.is_empty():
+				source_name = "PNGTuber-Plus"
+			ndi_node.name = source_name  # NDI source name
+			ndi_node.audio_bus = StringName("")  # No audio by default
+			Global.main.add_child(ndi_node)
+			Global.main.ndi_output = ndi_node
+			print("NDI streaming enabled")
+			Global.pushUpdate("NDI streaming enabled")
+		update_ndi_status()
+	else:
+		# Disable NDI - remove the node
+		if Global.main.ndi_output:
+			Global.main.ndi_output.queue_free()
+			Global.main.ndi_output = null
+			print("NDI streaming disabled")
+			Global.pushUpdate("NDI streaming disabled")
 		update_ndi_status()
 
 func _on_ndi_source_name_text_changed(new_text: String):
@@ -292,20 +312,23 @@ func _on_ndi_audio_check_toggled(toggled_on: bool):
 		print("NDI audio ", "enabled" if toggled_on else "disabled")
 
 func _on_ndi_toggle_button_pressed():
-	# Toggle NDI streaming on/off - NDI is always on when the node exists
-	print("NDI toggle pressed - NDI is active when node exists")
-	update_ndi_status()
+	# Toggle NDI streaming on/off by toggling the checkbox
+	var current_state = $NDIOutput/ndiEnabledCheck.button_pressed
+	$NDIOutput/ndiEnabledCheck.button_pressed = !current_state
+	_on_ndi_enabled_check_toggled(!current_state)
 
 func update_ndi_status():
 	# Update the status label and button text
 	if Global.main.ndi_output:
 		$NDIOutput/StatusLabel.text = "Status: Active (NDI Source: " + Global.main.ndi_output.name + ")"
-		$NDIOutput/toggleButton.text = "NDI Active"
 		$NDIOutput/ndiEnabledCheck.button_pressed = true
+		$NDIOutput/ndiSourceName.text = Global.main.ndi_output.name
+	else:
+		$NDIOutput/StatusLabel.text = "Status: Disabled"
+		$NDIOutput/ndiEnabledCheck.button_pressed = false
 
 func setup_ndi_settings():
 	# Initialize NDI settings UI with current values
 	if Global.main.ndi_output:
 		$NDIOutput/ndiSourceName.text = Global.main.ndi_output.name
-		$NDIOutput/ndiAudioCheck.button_pressed = (Global.main.ndi_output.audio_bus != StringName(""))
 		update_ndi_status()
