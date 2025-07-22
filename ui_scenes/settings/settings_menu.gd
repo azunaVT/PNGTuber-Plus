@@ -332,3 +332,21 @@ func setup_ndi_settings():
 	if Global.main.ndi_output:
 		$NDIOutput/ndiSourceName.text = Global.main.ndi_output.name
 		update_ndi_status()
+	
+	# Initialize avatar-only checkbox state
+	$NDIOutput/avatarOnlyCheck.button_pressed = false
+	if Global.main.ndi_avatar_viewport:
+		$NDIOutput/avatarOnlyCheck.button_pressed = Global.main.ndi_avatar_viewport.visible
+
+func _on_avatar_only_check_toggled(toggled_on: bool):
+	# Enable/disable avatar-only NDI streaming
+	if Global.main.ndi_avatar_viewport:
+		Global.main.ndi_avatar_viewport.visible = toggled_on
+		if toggled_on:
+			# Sync avatar when enabling
+			Global.main.ndi_avatar_viewport.sync_avatar()
+			print("Avatar-only NDI stream enabled")
+			Global.pushUpdate("Avatar-only NDI stream enabled")
+		else:
+			print("Avatar-only NDI stream disabled")
+			Global.pushUpdate("Avatar-only NDI stream disabled")

@@ -8,7 +8,7 @@ var editMode = true
 @onready var controlPanel = $ControlPanel
 @onready var editControls = $EditControls
 @onready var tutorial = $Tutorial
-@onready var spriteViewer = $EditControls/SpriteViewer
+@onready var spriteViewer = $EditControls/Container/SpriteViewer
 @onready var viewerArrows = $ViewerArrows
 @onready var spriteList = $EditControls/SpriteList
 
@@ -26,6 +26,7 @@ var editMode = true
 @onready var shadow = $shadowSprite
 
 @onready var ndi_output = $NDIOutput
+@onready var ndi_avatar_viewport = $NDIAvatarViewport
 
 
 #Scene Reference
@@ -155,6 +156,10 @@ func _ready():
 	var s = get_viewport().get_visible_rect().size
 	origin.position = s*0.5
 	updateCameraPosition()
+	
+	# Initialize avatar viewport
+	if ndi_avatar_viewport:
+		ndi_avatar_viewport.visible = false  # Start disabled
 	
 	# Test NDI output on startup
 	call_deferred("toggle_ndi")
@@ -431,7 +436,16 @@ func add_image(path):
 	
 	Global.spriteList.updateData()
 	
+	# Sync avatar to NDI viewport
+	if ndi_avatar_viewport:
+		call_deferred("sync_avatar_viewport")
+	
 	Global.pushUpdate("Added new sprite.")
+	
+## Sync avatar viewport with current sprite state
+func sync_avatar_viewport():
+	if ndi_avatar_viewport:
+		ndi_avatar_viewport.sync_avatar()
 	
 #Opens File Dialog
 func _on_add_button_pressed():
@@ -574,6 +588,10 @@ func _on_load_dialog_file_selected(path):
 	for sprite in allSprites:
 		if sprite.has_method("updateOpacity"):
 			sprite.updateOpacity()
+	
+	# Sync avatar to NDI viewport
+	if ndi_avatar_viewport:
+		ndi_avatar_viewport.sync_avatar()
 	
 	Global.pushUpdate("Loaded avatar at: " + path)
 	

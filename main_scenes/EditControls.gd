@@ -30,7 +30,7 @@ func _process(delta):
 		if buttons[b] == null:
 			continue
 		if Rect2(buttons[b].get_parent().position-Vector2(24,24),buttons[b].size).has_point(get_local_mouse_position()):
-			var uiAnimSpeed = Global.main.physicsTimeMultiplier * 20.0 if Global.main else 120.0
+			var uiAnimSpeed = 8.0  # Fixed UI animation speed
 			sprites[s].scale = lerp(sprites[s].scale, Vector2(1.2,1.2), delta * uiAnimSpeed)
 			if Input.is_action_pressed("mouse_left"):
 				sprites[s].scale = Vector2(0.6,0.6)
@@ -51,7 +51,7 @@ func _process(delta):
 					Global.mouse.text = "Duplicate sprite"
 			
 		else:
-			var uiAnimSpeed = Global.main.physicsTimeMultiplier * 20.0 if Global.main else 120.0
+			var uiAnimSpeed = 8.0  # Fixed UI animation speed
 			sprites[s].scale = lerp(sprites[s].scale, Vector2(1.0,1.0), delta * uiAnimSpeed)
 		s += 1
 	

@@ -40,8 +40,17 @@ Access the NDI settings through the Settings Menu:
    - **NDI streaming**: Enable/disable NDI output
    - **Source name**: Set a custom name for your NDI source (default: "PNGTuber-Plus")
    - **Include audio**: Toggle audio streaming on/off
+   - **Avatar-only stream**: Enable a clean avatar-only stream without UI elements
    - **Status**: View current streaming status
    - **Start/Stop NDI**: Manual control button
+
+#### Avatar-Only Streaming
+
+The "Avatar-only stream" option creates a second NDI source called "PNGTuber Avatar" that:
+- Streams only the avatar sprites with a transparent background
+- Excludes all UI elements, menus, and controls
+- Perfect for professional streaming setups
+- Syncs automatically with the main avatar state
 
 ### 3. Hotkey Controls
 

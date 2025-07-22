@@ -4,3 +4,4 @@
 .itchio/
 .steam/
 build/
+*.TMP

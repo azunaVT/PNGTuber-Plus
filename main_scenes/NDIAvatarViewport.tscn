@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://main_scenes/NDIAvatarViewport.gd" id="1"]
+
+[node name="SubViewport" type="SubViewport"]
+handle_input_locally = false
+size = Vector2i(1280, 720)
+render_target_update_mode = 4
+script = ExtResource("1")
+
+[node name="NDIOutput" type="NDIOutput"]
+name = "PNGTuber Avatar"
+enable_editor_output = true
+
+[node name="OriginMotion" type="Node2D"]
+position = Vector2(640, 360)
+
+[node name="Origin" type="Node2D" parent="OriginMotion"]
